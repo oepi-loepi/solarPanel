@@ -46,7 +46,7 @@ App {
 	property int 	nextday
 	
 	property bool enableSleep : false
-	property bool debugOutput : true						// Show console messages. Turn on in settings file !
+	property bool debugOutput : false						// Show console messages. Turn on in settings file !
 	
 	
 	property variant dayValues: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
