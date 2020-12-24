@@ -44,6 +44,7 @@ App {
     property string rollingMaxX :"09:00"
 	property int 	x2
 	property int 	nextday
+	property date d
 	
 	property bool enableSleep : false
 	property bool debugOutput : false						// Show console messages. Turn on in settings file !
@@ -563,7 +564,6 @@ App {
 				yearTotal += "," + yearValues[p]
 			}
 			solarPanel_yearValues.write(yearTotal)
-			
 			solarPanel_lastWrite.write(d)
 		}
 
@@ -590,7 +590,7 @@ App {
     }
 
 
-	function witeDailyData(){
+	function writeDailyData(){
 		if (debugOutput) console.log("*********SolarPanel dtime: " + dtime )
 	
 	//Write 5minute values to file
@@ -717,7 +717,7 @@ App {
             triggeredOnStart: true
             onTriggered: {
 			
-				var d = new Date()
+				d = new Date()
 					dtime = parseInt(Qt.formatDateTime (d,"hh") + Qt.formatDateTime (d,"mm"))
 				if (debugOutput) console.log("*********SolarPanel dtime: " + dtime)
 					var dday = d.getDate()
@@ -739,7 +739,7 @@ App {
 				}
 			
 				if (dtime>=2351 & dtime<2356){ //just before midnight
-					witeDailyData()
+					writeDailyData()
 						if (nextday==1){ //today is the last day of the month
 							writeMonthlyData()
 						}
