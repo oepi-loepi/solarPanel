@@ -6,7 +6,7 @@ Screen {
 	id: solarPanelConfigScreen
 	screenTitle: "SolarPanel Configuratie"
 
-	property variant invertersArray: ["Growatt","SolarEdge", "Fronius", "SMA", "Kostal Piko", "ZeverSolar"]
+	property variant invertersArray: ["PVOutput","Fronius","Growatt","Kostal Piko","SMA","SolarEdge","ZeverSolar"]
 	property int numberofItems
 	property string selectedInverter:app.selectedInverter
 	property string field1Text: ""
@@ -20,6 +20,8 @@ Screen {
 	property string smaTempPassWord: app.smaPassWord
 	property string kostalTempUrl: app.kostalUrl
 	property string zeversolarTempUrl: app.zeversolarUrl
+	property string pvOutputKeyTempApi: app.pvOutputApiKey
+	property string pvOutputSidTempSid: app.pvOutputSid
 
 	function setFieldText(text) {
 			field1Text=""
@@ -30,15 +32,17 @@ Screen {
 			if (text.toLowerCase()=="sma") field1Text = "SMA URL like \"192.168.10.5\":"
 			if (text.toLowerCase()=="kostal piko") field1Text = "Kostal URL like \"192.168.10.5\":"
 			if (text.toLowerCase()=="zeversolar") field1Text = "ZeverSolar URL like \"192.168.10.5\":"
+			if (text.toLowerCase()=="pvoutput") field1Text = "SiteID:"
 			
 			if (text.toLowerCase()=="growatt") field2Text = "Wachtwoord:"
 			if (text.toLowerCase()=="solaredge") field2Text = "Api Key:"
 			if (text.toLowerCase()=="fronius") field2Text = ""
 			if (text.toLowerCase()=="sma") field2Text = "Wachtwoord:"
 			if (text.toLowerCase()=="kostal piko") field2Text = ""
+			if (text.toLowerCase()=="pvoutput") field2Text = "Api Key:"
 			
 			for(var x2 = 0;x2 < invertersArray.length;x2++){
-				if (invertersArray[x2].toLowerCase()==selectedInverter.toLowerCase()){ console.log("inverter found in list "); listview1.currentIndex = x2}
+				if (invertersArray[x2].toLowerCase()==selectedInverter.toLowerCase()){ listview1.currentIndex = x2}
 			}
 	}
 	
@@ -49,6 +53,7 @@ Screen {
 			if (selectedInverter.toLowerCase()=="sma") smaTempUrl = text
 			if (selectedInverter.toLowerCase()=="kostal piko") kostalTempUrl = text
 			if (selectedInverter.toLowerCase()=="zeversolar") zeversolarTempUrl = text
+			if (selectedInverter.toLowerCase()=="pvoutput") pvOutputSidTempSid = text
 			setFieldText(selectedInverter)
 	}
 	
@@ -56,6 +61,7 @@ Screen {
 			if (selectedInverter.toLowerCase()=="growatt") growattTempPass = text
 			if (selectedInverter.toLowerCase()=="solaredge") solaredgeTempApi = text
 			if (selectedInverter.toLowerCase()=="sma") smaTempPass = text
+			if (selectedInverter.toLowerCase()=="pvoutput") pvOutputKeyTempApi = text
 			setFieldText(selectedInverter)
 	}
 
@@ -77,6 +83,9 @@ Screen {
 		
 		kostalUrl.inputText = kostalTempUrl	
 		zeversolarUrl.inputText = zeversolarTempUrl
+		
+		pvOutputSITE.inputText = pvOutputSidTempSid
+		pvOutputAPI.inputText = pvOutputKeyTempApi
 
 		addCustomTopRightButton("Opslaan")
 		fillInverters()
@@ -95,6 +104,8 @@ Screen {
 		app.smaPassWord = smaPassWord.inputText
 		app.kostalUrl = kostalUrl.inputText
 		app.zeversolarUrl = zeversolarUrl.inputText
+		app.pvOutputSid = pvOutputSITE.inputText
+		app.pvOutputApiKey = pvOutputAPI.inputText
 		app.saveSettings()
 		hide()
 	}
@@ -497,5 +508,41 @@ Screen {
 		}
 		visible: (selectedInverter.toLowerCase()=="zeversolar")
 	}
+	
+//////////////////////////////////////////////PV OUTPUT  //////////////////////////////////////////
+	EditTextLabel4421 {
+		id: pvOutputSITE
+		width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
+		height: isNxt? 35:28
+		leftTextAvailableWidth: isNxt? 100:80
+		leftText: ""
+		anchors {
+			left: mytext1.left
+			top: inputField1Text.bottom
+			topMargin: isNxt? 10:8
+		}
+		onClicked: {
+			qkeyboard.open(field1Text, pvOutputSITE.inputText, saveField1Data)
+		}
+		visible: (selectedInverter.toLowerCase()=="pvoutput")
+	}
+	
+	EditTextLabel4421 {
+		id: pvOutputAPI
+		width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
+		height: isNxt? 35:28
+		leftTextAvailableWidth: isNxt? 100:80
+		leftText: ""
+		anchors {
+			left: mytext1.left
+			top: inputField2Text.bottom
+			topMargin: isNxt? 10:8
+		}
+		onClicked: {
+			qkeyboard.open(field2Text, pvOutputAPI.inputText, saveField2Data)
+		}
+		visible: (selectedInverter.toLowerCase()=="pvoutput")
+	}
+	
 }
 

@@ -71,18 +71,15 @@ App {
 	property string selectedInverter: ""
 	property string growattUserName: "GrowattUser"
 	property string growattPassWord: "GrowattPass"
-	
 	property string solarEdgeSiteID: "SolarEdgeSite"
 	property string solarEdgeApiKey: "SolarEdgeApi"
-	
 	property string froniusUrl: "Fronius URL"
-	
 	property string smaUrl: "SMA URL"
 	property string smaPassWord : "SMA Password"
-	
 	property string kostalUrl : ""
-	
 	property string zeversolarUrl : ""
+	property string pvOutputApiKey : "97b351278b11a29d3c47c81ddd1084991e7cea58"
+    property string pvOutputSid : "80847"
 	
 	property variant solarpanelSettingsJson : {
 			'selectedInverter': "",
@@ -95,6 +92,8 @@ App {
 			'smaPassWord': "",
 			'kostalUrl': "",
 			'seversolarUrl': "",
+			'pvOutputApiKey': "",
+			'pvOutputSid': "",
 			'enableSleep' : "",
 			'DebugOn': ""
 	}
@@ -106,6 +105,7 @@ App {
 		if (selectedInverter.toLowerCase()=="sma") getSmaStep1()
 		if (selectedInverter.toLowerCase()=="kostal piko") getKostalData()
 		if (selectedInverter.toLowerCase()=="zeversolar") getZeversolarData()
+		if (selectedInverter.toLowerCase()=="pvoutput") getPVOutputData()
     }
 	
 
@@ -157,6 +157,8 @@ App {
 			smaPassWord = solarpanelSettingsJson['smaPassWord']
 			kostalUrl = solarpanelSettingsJson['kostalUrl']
 			zeversolarUrl = solarpanelSettingsJson['zeversolarUrl']
+			pvOutputApiKey = solarpanelSettingsJson['pvOutputApiKey']
+			pvOutputSid = solarpanelSettingsJson['pvOutputSid']
 			if (solarpanelSettingsJson['enableSleep'] == "Yes") {enableSleep = true} else {enableSleep = false}
 			//if (solarpanelSettingsJson['DebugOn'] == "Yes") {debugOutput = true} else {debugOutput = false}
 		} catch(e) {
@@ -244,7 +246,6 @@ App {
 		if (debugOutput) console.log("*********SolarPanel year:" + yearValue)
 		if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
 		if (debugOutput) console.log("*********SolarPanel oldYearValue:" + oldYearValue)
-
 	}
 	
 /////////////////////////////////////////////////////////////////GROWATT//////////////////////////////////////////////////////////////////////////////	
@@ -504,6 +505,97 @@ App {
 		}
 		http.send()
     }
+	
+///////////////////////////////////////////////////////////////// PV OUTPUT //////////////////////////////////////////////////////////////////////////////	
+    function getPVOutputData(){
+            if (debugOutput) console.log("*********SolarPanel Start  getPVOutputData")
+            var http = new XMLHttpRequest()
+            var url = "https://pvoutput.org/service/r2/getstatus.jsp?stats=1"
+            http.open("POST", url, true)
+            http.setRequestHeader("X-Pvoutput-Apikey", pvOutputApiKey)
+            http.setRequestHeader("X-Pvoutput-SystemId", pvOutputSid)
+            http.onreadystatechange = function() { // Call a function when the state changes.
+                        if (http.readyState === 4) {
+                            if (http.status === 200) {
+                                if (debugOutput) console.log("*********SolarPanel PVOutput: " + http.responseText)
+                               var pvoutputararray = http.responseText.split(",")
+                                currentPower = parseInt(pvoutputararray[1])
+                                todayValue = parseFloat(pvoutputararray[0]/1000).toFixed(2)
+                                getPVOutputData2()
+                            } else {
+                                if (debugOutput) console.log("*********SolarPanel error: " + http.status)
+                            }
+                        }
+                    }
+            http.send();
+        }
+
+    function getPVOutputData2(){ //this month
+            if (debugOutput) console.log("*********SolarPanel Start  getPVOutputData2")
+            var http = new XMLHttpRequest()
+            var url = "https://pvoutput.org/service/r2/getstatistic.jsp?df=" +  dateTimeNow.getFullYear() + "" + (dateTimeNow.getMonth()+1) + "01"
+            http.open("POST", url, true)
+            http.setRequestHeader("X-Pvoutput-Apikey", pvOutputApiKey)
+            http.setRequestHeader("X-Pvoutput-SystemId", pvOutputSid)
+            http.onreadystatechange = function() { // Call a function when the state changes.
+                        if (http.readyState === 4) {
+                            if (http.status === 200) {
+                                if (debugOutput) console.log("*********SolarPanel PVOutput2: " + http.responseText)
+                                var pvoutputararray = http.responseText.split(",")
+                                monthValue = parseFloat(pvoutputararray[0]/1000).toFixed(1)
+                                getPVOutputData3()
+                            } else {
+                                if (debugOutput) console.log("*********SolarPanel error: " + http.status)
+                            }
+                        }
+                    }
+            http.send();
+        }
+
+    function getPVOutputData3(){   //this year
+            if (debugOutput) console.log("*********SolarPanel Start  getPVOutputData3")
+            var http = new XMLHttpRequest()
+            var url = "https://pvoutput.org/service/r2/getstatistic.jsp?df=" + dateTimeNow.getFullYear() + "0101"
+            http.open("POST", url, true)
+            http.setRequestHeader("X-Pvoutput-Apikey", pvOutputApiKey)
+            http.setRequestHeader("X-Pvoutput-SystemId", pvOutputSid)
+            http.onreadystatechange = function() { // Call a function when the state changes.
+                        if (http.readyState === 4) {
+                            if (http.status === 200) {
+                                if (debugOutput) console.log("*********SolarPanel PVOutput3: " + http.responseText)
+                                var pvoutputararray = http.responseText.split(",")
+                                yearValue = parseInt(pvoutputararray[0]/1000)
+                                getPVOutputData4()
+                            } else {
+                                if (debugOutput) console.log("*********SolarPanel error: " + http.status)
+                            }
+                        }
+                    }
+            http.send();
+        }
+
+
+    function getPVOutputData4(){
+            if (debugOutput) console.log("*********SolarPanel Start  getPVOutputData4")
+            var http = new XMLHttpRequest()
+            var url = "https://pvoutput.org/service/r2/getstatistic.jsp"
+            http.open("POST", url, true)
+            http.setRequestHeader("X-Pvoutput-Apikey", pvOutputApiKey)
+            http.setRequestHeader("X-Pvoutput-SystemId", pvOutputSid)
+            http.onreadystatechange = function() { // Call a function when the state changes.
+                        if (http.readyState === 4) {
+                             if (http.status === 200) {
+                                if (debugOutput) console.log("*********SolarPanel PVOutput4: " + http.responseText)
+                                var pvoutputararray = http.responseText.split(",")
+                                 totalValue = parseInt(pvoutputararray[0]/1000)
+                                doData()
+                            } else {
+                                if (debugOutput) console.log("*********SolarPanel error: " + http.status)
+                            }
+                        }
+                    }
+            http.send();
+        }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////DO DATA  //////////////////////////////////////////////////////////////////////////////////////////
@@ -771,6 +863,8 @@ App {
 			"smaUrl" 			: smaUrl,
 			"kostalUrl" 		: kostalUrl,
 			"zeversolarUrl" 	: zeversolarUrl,
+			"pvOutputApiKey"	: pvOutputApiKey,
+			"pvOutputSid"		: pvOutputSid,
 			"enableSleep" 		: tmpenableSleep,
 			"DebugOn"			: tmpDebugOn
 		}
