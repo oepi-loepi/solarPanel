@@ -42,7 +42,7 @@ App {
 	property string rollingMinX :"07:00"
 	property string rollingCenterX : "08:00"
     property string rollingMaxX :"09:00"
-	property int 	x2
+	property int 	minsfromsevenIndex
 	property int 	nextday
 	property date 	dateTimeNow
 	property int 	dday
@@ -533,7 +533,7 @@ App {
 		
 		var newArray = []
 		newArray = fiveminuteValues
-		newArray[x2] = parseInt(currentPower)
+		newArray[minsfromsevenIndex] = parseInt(currentPower)
 		fiveminuteValues = newArray
 		
 		if (mins >= 10 & mins < 16){  //every hour
@@ -572,7 +572,7 @@ App {
 
 		//make new rolling array each 5 mins
 		if (debugOutput) console.log("*********SolarPanel calculating rollingfiveminuteValues minsfromseven" + minsfromseven)
-		var x2now  = parseInt(minsfromseven/5)
+		var x2now  = minsfromsevenIndex
 		var x2twohoursAgo  = x2now - 24  //less 2 hours
 		var newArray5 = []
 		for (var y = x2twohoursAgo; y <= x2now; y++) { 
@@ -730,10 +730,10 @@ App {
 					hrs = parseInt(Qt.formatDateTime(dateTimeNow,"hh"))
 					mins = parseInt(Qt.formatDateTime(dateTimeNow,"mm"))
 					var minsfromseven = ((hrs-7)*60) + mins
-					x2  = parseInt(minsfromseven/5)
+					minsfromsevenIndex  = parseInt(minsfromseven/5)
 				if (debugOutput) console.log("*********SolarPanel minsfromseven : " + minsfromseven)
 				if (debugOutput) console.log("*********SolarPanel dtime : " + dtime)
-				if (debugOutput) console.log("*********SolarPanel x2 : " + x2)
+				if (debugOutput) console.log("*********SolarPanel minsfromsevenIndex : " + minsfromsevenIndex)
 				
 				var nextdayDate = new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate()+1)
 				nextday = nextdayDate.getDate()
