@@ -44,7 +44,10 @@ App {
     property string rollingMaxX :"09:00"
 	property int 	x2
 	property int 	nextday
-	property date d
+	property date 	dateTimeNow
+	property int 	dday
+	property int 	hrs
+	property int 	mins
 	
 	property bool enableSleep : false
 	property bool debugOutput : false						// Show console messages. Turn on in settings file !
@@ -550,7 +553,7 @@ App {
 			solarPanel_dailyTotals.write(dayTotal2)
 			
 			//write last month totals to file each hour
-			monthValues[d.getMonth()+1] = parseFloat(monthValue).toFixed(1)
+			monthValues[dateTimeNow.getMonth()+1] = parseFloat(monthValue).toFixed(1)
 			var monthTotal2 = monthValues[0]
 			for (var s2 = 1; s2 <= 12; s2++) { 
 				monthTotal2 += "," + monthValues[s2]
@@ -558,13 +561,13 @@ App {
 			solarPanel_monthTotals.write(monthTotal2)
 			
 			//write last year totals to file
-			yearValues[d.getFullYear()-2020] = Math.floor(yearValue)
+			yearValues[dateTimeNow.getFullYear()-2020] = Math.floor(yearValue)
 			var yearTotal = yearValues[0]
 			for (var p = 0; p <= 10; p++) { 
 				yearTotal += "," + yearValues[p]
 			}
 			solarPanel_yearValues.write(yearTotal)
-			solarPanel_lastWrite.write(d)
+			solarPanel_lastWrite.write(dateTimeNow)
 		}
 
 		//make new rolling array each 5 mins
@@ -577,18 +580,20 @@ App {
 						}
 		rollingfiveminuteValues = newArray5
 
-		var now = new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes())
-		var oneHoursEarlier= new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()-1, d.getMinutes())
-		var twoHoursEarlier= new Date(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours()-2, d.getMinutes())
+		var now = new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate(), dateTimeNow.getHours(), dateTimeNow.getMinutes())
+		var oneHoursEarlier= new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate(), dateTimeNow.getHours()-1, dateTimeNow.getMinutes())
+		var twoHoursEarlier= new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate(), dateTimeNow.getHours()-2, dateTimeNow.getMinutes())
 		rollingMinX = Qt.formatDateTime(twoHoursEarlier,"hh") + ":" + Qt.formatDateTime(twoHoursEarlier,"mm")
 		rollingCenterX = Qt.formatDateTime(oneHoursEarlier,"hh") + ":" + Qt.formatDateTime(oneHoursEarlier,"mm")
 		rollingMaxX = Qt.formatDateTime(now,"hh") + ":" + Qt.formatDateTime(now,"mm")
 		if (debugOutput) console.log("*********SolarPanel rollingMinX " + rollingMinX)
 		if (debugOutput) console.log("*********SolarPanel rollingCenterX " + rollingCenterX)
 		if (debugOutput) console.log("*********SolarPanel rollingMaxX " + rollingMaxX)
-		
     }
 
+
+
+/////////////////////////////////////////WRITE DAILY DATA/////////////////////////////////////////////////////////////////////////////////////////////////
 
 	function writeDailyData(){
 		if (debugOutput) console.log("*********SolarPanel dtime: " + dtime )
@@ -626,9 +631,9 @@ App {
 	//write total to file
 		solarPanel_totalValue.write(parseInt(totalValue))
 	
-		solarPanel_lastWrite.write(d)
+		solarPanel_lastWrite.write(dateTimeNow)
 
-	
+/////////////////////////////////////////WRITE MONTHLY DATA/////////////////////////////////////////////////////////////////////////////////////////////////	
 	
 	function writeMonthlyData(){
 	
@@ -649,7 +654,7 @@ App {
 			
 
 			//write last year totals to file
-			yearValues[d.getFullYear()-2020] = Math.floor(yearValue)
+			yearValues[dateTimeNow.getFullYear()-2020] = Math.floor(yearValue)
 			var yearTotal = yearValues[0]
 			for (var p = 0; p <= 10; p++) { 
 				yearTotal += "," + yearValues[p]
@@ -673,16 +678,16 @@ App {
 			solarPanel_oldYearValue.write(parseInt(totalValue))	
 		
 		//write last month totals to file
-			monthValues[d.getMonth()+1] = parseFloat(monthValue).toFixed(1)
+			monthValues[dateTimeNow.getMonth()+1] = parseFloat(monthValue).toFixed(1)
 			var monthTotal = monthValues[0]
 			for (var s = 1; s <= 12; s++) { 
 				monthTotal += "," + monthValues[s]
 			}
 			solarPanel_monthTotals.write(monthTotal)
 			
-			if ((d.getMonth()+1)==12){	//end of year
+			if ((dateTimeNow.getMonth()+1)==12){	//end of year
 				//write last year totals to file
-				yearValues[d.getFullYear()-2020] = Math.floor(yearValue)
+				yearValues[dateTimeNow.getFullYear()-2020] = Math.floor(yearValue)
 				var yearTotal = yearValues[0]
 				for (var p = 0; p <= 10; p++) { 
 					yearTotal += "," + yearValues[p]
@@ -708,6 +713,7 @@ App {
 		}
 	}
 	
+/////////////////////////////////////////TIMER /////////////////////////////////////////////////////////////////////////////////////////////////
 	
     Timer {
             id: scrapeTimer   //interval to get the solar data
@@ -717,19 +723,19 @@ App {
             triggeredOnStart: true
             onTriggered: {
 			
-				d = new Date()
-					dtime = parseInt(Qt.formatDateTime (d,"hh") + Qt.formatDateTime (d,"mm"))
+				dateTimeNow= new Date()
+					dtime = parseInt(Qt.formatDateTime (dateTimeNow,"hh") + Qt.formatDateTime (dateTimeNow,"mm"))
 				if (debugOutput) console.log("*********SolarPanel dtime: " + dtime)
-					var dday = d.getDate()
-					var hrs = parseInt(Qt.formatDateTime(d,"hh"))
-					var mins = parseInt(Qt.formatDateTime(d,"mm"))
+					dday = dateTimeNow.getDate()
+					hrs = parseInt(Qt.formatDateTime(dateTimeNow,"hh"))
+					mins = parseInt(Qt.formatDateTime(dateTimeNow,"mm"))
 					var minsfromseven = ((hrs-7)*60) + mins
 					x2  = parseInt(minsfromseven/5)
 				if (debugOutput) console.log("*********SolarPanel minsfromseven : " + minsfromseven)
 				if (debugOutput) console.log("*********SolarPanel dtime : " + dtime)
 				if (debugOutput) console.log("*********SolarPanel x2 : " + x2)
 				
-				var nextdayDate = new Date(d.getFullYear(), d.getMonth(), d.getDate()+1)
+				var nextdayDate = new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate()+1)
 				nextday = nextdayDate.getDate()
 				if (debugOutput) console.log("*********SolarPanel nextdayDate : " + nextdayDate)
 				if (debugOutput) console.log("*********SolarPanel nextday : " + nextday)
@@ -746,7 +752,9 @@ App {
 				}
             }
     }
-   
+ 
+///////////////////////////////////////// SAVE ALL TO SETTINGS ///////////////////////////////////////////////////////////////////////////////////////////////// 
+
    	function saveSettings() {
 		if (debugOutput) console.log("*********SolarPanel Savedata Started" )
 		var tmpDebugOn = ""
