@@ -92,7 +92,7 @@ App {
 	property string solarEdgeSiteID: "SolarEdgeSite"
 	property string solarEdgeApiKey: "SolarEdgeApi"
 	property string froniusUrl: "Fronius URL"
-	property string smaUrl: "SMA URL"
+	property string smaUrl: ""
 	property string smaPassWord : "SMA Password"
 	property string kostalUrl : ""
 	property string zeversolarUrl : ""
@@ -841,9 +841,11 @@ App {
 		var newArray5 = []
 		maxRollingY = 0
 		for (var y = x2twohoursAgo; y <= x2now; y++) { 
-							newArray5.push(fiveminuteValues[y])
-							if (parseInt(maxRollingY) < parseInt(fiveminuteValues[y])){maxRollingY = fiveminuteValues[y]}
-						}
+			newArray5.push(fiveminuteValues[y])
+			if (parseInt(maxRollingY) < parseInt(fiveminuteValues[y])){
+					maxRollingY = fiveminuteValues[y]
+			}
+		}
 		rollingfiveminuteValues = newArray5
 		
 		//make new rolling array for production each 5 mins
@@ -852,8 +854,8 @@ App {
 		var x2twohoursAgo  = x2now - 24  //less 2 hours
 		var newArray5Prod = []
 		for (var y = x2twohoursAgo; y <= x2now; y++) { 
-							newArray5Prod.push(fiveminuteValuesProd[y])
-						}
+				newArray5Prod.push(fiveminuteValuesProd[y])
+		}
 		rollingfiveminuteValuesProd = newArray5Prod
 		
 
@@ -1013,7 +1015,18 @@ App {
 		}
 	}
 	
-/////////////////////////////////////////TIMER /////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////// TIMERS /////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	Timer {
+            id: getUsageTimer   //interval to get ussage power data
+            interval: 20000
+            repeat: true
+            running: true
+            triggeredOnStart: true
+            onTriggered: {
+				requestRRDData("Now")
+            }
+    }
 	
     Timer {
             id: scrapeTimer   //interval to get the solar data
@@ -1071,6 +1084,7 @@ App {
 			"solarEdgeApiKey" 	: solarEdgeApiKey,
 			"froniusUrl" 		: froniusUrl,
 			"smaUrl" 			: smaUrl,
+			"smaPassWord"		: smaPassWord,
 			"kostalUrl" 		: kostalUrl,
 			"zeversolarUrl" 	: zeversolarUrl,
 			"pvOutputApiKey"	: pvOutputApiKey,
@@ -1078,6 +1092,7 @@ App {
 			"enableSleep" 		: tmpenableSleep,
 			"DebugOn"			: tmpDebugOn
 		}
+		solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
 		solarpanelSettingsFile.write(JSON.stringify(setJson))
 		getData()
 	}

@@ -11,5 +11,5 @@ HourTile {
 	startTime: app.twoHoursEarlier
 	endTime:  app.now
 	graphColor: dimmableColors.graphSolar
-	timeTextsVisible: values.length > 0
+	timeTextsVisible: (app.maxRollingY > 0)
 }

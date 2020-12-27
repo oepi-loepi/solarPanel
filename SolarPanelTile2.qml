@@ -56,7 +56,7 @@ Tile {
 			color: !dimState ? "black" : "white"
             anchors {
                 top: maand.bottom
-                topMargin: 2
+                topMargin: 4
                 horizontalCenter: parent.horizontalCenter
             }
             font.pixelSize: isNxt? 25:20
@@ -80,7 +80,7 @@ Tile {
 
 	Text {
             id: curUsagePower
-            text: "Usage: " + app.currentUsage + " W"
+            text: "Verbruik: " + app.currentUsage + " W"
 	    color: !dimState ? "black" : "white"
             anchors {
                 top: curProdPower.bottom

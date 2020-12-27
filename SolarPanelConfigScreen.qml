@@ -17,7 +17,7 @@ Screen {
 	property string solaredgeTempApi: app.solarEdgeApiKey
 	property string froniusTempURL: app.froniusUrl
 	property string smaTempUrl: app.smaUrl
-	property string smaTempPassWord: app.smaPassWord
+	property string smaTempPass: app.smaPassWord
 	property string kostalTempUrl: app.kostalUrl
 	property string zeversolarTempUrl: app.zeversolarUrl
 	property string pvOutputKeyTempApi: app.pvOutputApiKey
@@ -79,7 +79,7 @@ Screen {
 		solaredgeAPI.inputText = solaredgeTempApi
 		
 		smaUrl.inputText = smaTempUrl
-		smaPassWord.inputText = smaTempPassWord
+		smaPassWord.inputText = smaTempPass
 		
 		kostalUrl.inputText = kostalTempUrl	
 		zeversolarUrl.inputText = zeversolarTempUrl
