@@ -41,10 +41,19 @@ Item {
 	property bool   showValuesOnLevel : true
 	property string specialBarColor :"red"
 	property int   	specialBarIndex  : 0
-	property bool   showSpecialBar : false
-	
-	
+	property bool   showSpecialBar : false	
 	property variant dataValues: []
+	
+	//second bar should have lower values than the first.
+	property bool   isStacked : true
+	property string specialBarColor2 :"green"
+	property int   	specialBarIndex2  : 0
+	property bool   showSpecialBar2 : false
+	property string barColor2 : "purple"
+	
+	property variant dataValues2: []
+	
+	
 	
     property int iMin
     property int iMax
@@ -81,7 +90,7 @@ Item {
 
 	function calculateValues(){
 		if(!isManualMax){
-			iMax = dataValues[0]
+			iMax = 1
 			iMin = dataValues[0]
 			if(isAreaGraph) iMax = 100
 			for (var i in dataValues){
@@ -89,10 +98,12 @@ Item {
 			  if (dataValues[i] > iMax)iMax = dataValues[i]
 			}
 		}
+		
 		if(isManualMax) iMax = Math.round(manualMax)
 		//console.log("*****************************************8solarbar iMax: " + iMax)
 		if(iMax >= 0 & iMax < 1) maxFormatted = 1
 		if(iMax >= 1 & iMax < 2) maxFormatted = 2
+		if(iMax >= 2 & iMax < 3) maxFormatted = 3
 		if(iMax >= 2 & iMax < 5) maxFormatted = 5
 		if(iMax >= 5 & iMax < 11) maxFormatted = 10
 		if(iMax >= 11 & iMax < 21) maxFormatted = 20
@@ -231,6 +242,34 @@ Item {
 		visible: !isAreaGraph
 	}
 
+	Row {
+		id: barGraph2
+		anchors.bottom: barGraphRect.bottom
+		anchors.left: barGraphRect.left
+		width: barGraphRect.width
+		Repeater {
+			id: barRepeater2
+			model: dataValues.length
+			Item {
+				height: isNxt? 8 :6
+				width: barGraphRect.width / dataValues.length
+				Rectangle {
+					id: bar2
+					color: ((index==specialBarIndex2)&showSpecialBar2)? specialBarColor2 : barColor2
+					height: dataValues2[index]*barGraphRect.height/(maxFormatted*1)
+					width: barGraphRect.width / (8*barWidthAdjust)
+					anchors {
+						bottom: parent.bottom
+						left: parent.left
+					}
+				}			
+			}
+		}
+		visible: !isAreaGraph & isStacked
+	}
+
+
+
     Rectangle {
 		id: lineYaxis
 		color: axisColor
@@ -315,6 +354,25 @@ Item {
 			values: dataValues
 		}
 		visible: isAreaGraph
+	}
+	
+	
+	Item {
+		id: brgraphItem2
+		anchors.bottom: barGraphRect.bottom
+		anchors.left: barGraphRect.left
+		width: barGraphRect.width
+		height: barGraphRect.height
+		AreaGraphControl {
+			id: areaGraph2
+			width: parent.width
+			height: parent.height
+			color: barColor2
+			yScale: height /maxFormatted
+			showNaN: false
+			values: dataValues2
+		}
+		visible: isAreaGraph & isStacked
 	}
 	
 	Row {

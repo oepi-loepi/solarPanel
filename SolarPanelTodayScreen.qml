@@ -46,7 +46,14 @@ Screen {
 		showLevels  : true
 		showValuesOnLevel : true
 		showSpecialBar : false
-		dataValues: yesterday? app.yesterday : app.fiveminuteValues	
+		dataValues: yesterday? app.yesterday : app.fiveminuteValues
+		
+		isStacked : true
+		specialBarColor2 :"green"
+		specialBarIndex2  : 0
+		showSpecialBar2 : false
+		barColor2 : "yellow"
+		dataValues2: yesterday? app.yesterdayProd : app.fiveminuteValuesProd
 	}
 	
 	NewTextLabel {

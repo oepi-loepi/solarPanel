@@ -7,9 +7,13 @@ import qb.components 1.0
 import qb.base 1.0
 import FileIO 1.0
 
+import BxtClient 1.0
+import qb.energyinsights 1.0 as EnergyInsights
+
+
 App {
 	id: solarPanelApp
-
+	
 	property url 	tileUrl : "SolarPanelTile.qml"
 	property url 	tileUrl2 : "SolarPanelTile2.qml"
 	property url 	tileUrl3 : "SolarPanelTile3.qml"
@@ -30,8 +34,13 @@ App {
 	property url 	solarPanelTodayScreenUrl : "SolarPanelTodayScreen.qml"
 	property		SolarPanelConfigScreen solarPanelConfigScreen
 	property url 	solarPanelConfigScreenUrl : "SolarPanelConfigScreen.qml"
+	property url 	solarThisMomentTileUrl : "SolarThisMomentTile.qml"
+	property url	graph2SolarHourTileUrl : "Graph2SolarHourTile.qml"
+
 	
 	property string currentPower : "0"
+	property string currentPowerProd : "0"
+	property string currentUsage : "0"
     property string dtime : "0001"
     property string todayValue : "0"
     property string monthValue : "0"
@@ -48,6 +57,11 @@ App {
 	property int 	dday
 	property int 	hrs
 	property int 	mins
+	property int	maxRollingY
+	
+	property date now
+	property date oneHoursEarlier
+	property date twoHoursEarlier
 	
 	property bool enableSleep : false
 	property bool debugOutput : false						// Show console messages. Turn on in settings file !
@@ -67,6 +81,10 @@ App {
 	property variant fiveminuteValues: []
 	property variant yesterday: []
 	property variant rollingfiveminuteValues:[]
+	
+	property variant fiveminuteValuesProd: []
+	property variant yesterdayProd: []
+	property variant rollingfiveminuteValuesProd:[]
 	
 	property string selectedInverter: ""
 	property string growattUserName: "GrowattUser"
@@ -113,6 +131,9 @@ App {
 		registry.registerWidget("tile", tileUrl, this, null, {thumbLabel: qsTr("Solar Grafiek"), thumbIcon: thumbnailIcon, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", tileUrl2, this, null, {thumbLabel: qsTr("SolarPanel 2"), thumbIcon: thumbnailIcon2, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", tileUrl3, this, null, {thumbLabel: qsTr("Solar Rolling"), thumbIcon: thumbnailIcon3, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
+		registry.registerWidget("tile", solarThisMomentTileUrl, this, null,  {thumbLabel: qsTr("Solar Nu"), thumbIcon:  thumbnailIcon3, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
+		registry.registerWidget("tile", graph2SolarHourTileUrl, this, null,  {thumbLabel: qsTr("Solar Uren"), thumbIcon:  thumbnailIcon3, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
+
 		
 		registry.registerWidget("screen", solarPanelScreenUrl, this, "solarPanelScreen")
 		registry.registerWidget("screen", solarPanelDayScreenUrl, this, "solarPanelDayScreen")
@@ -123,7 +144,9 @@ App {
 
 	FileIO {id: solarpanelSettingsFile;	source: "file:///mnt/data/tsc/solarpanel_userSettings.json"}
 	FileIO {id: solarPanel_fiveminuteValues;	source: "file:///mnt/data/tsc/appData/solarPanel_fiveminuteValues.txt"}
+	FileIO {id: solarPanel_fiveminuteValuesProd;	source: "file:///mnt/data/tsc/appData/solarPanel_fiveminuteValuesProd.txt"}
 	FileIO {id: solarPanel_yesterday;	source: "file:///mnt/data/tsc/appData/solarPanel_yesterday.txt"}
+	FileIO {id: solarPanel_yesterdayProd;	source: "file:///mnt/data/tsc/appData/solarPanel_yesterdayProd.txt"}
 	FileIO {id: solarPanel_dailyTotals;	source: "file:///mnt/data/tsc/appData/solarPanel_dailyTotals.txt"}
 	FileIO {id: solarPanel_dailyTotals_prevMonth;	source: "file:///mnt/data/tsc/appData/solarPanel_dailyTotals_prevMonth.txt"}
 	FileIO {id: solarPanel_monthTotals;	source: "file:///mnt/data/tsc/appData/solarPanel_monthTotals.txt"}
@@ -136,13 +159,19 @@ App {
 		
 	Component.onCompleted: { //clear array
 		for (var i = 0; i <= 180; i++){fiveminuteValues[i] = 0}  //moet 180 zijn (15 uur /dag 12 x per uur (elke 5 mins))
-		for (var c = 0; c <= 180; c++){yesterday[i]= 0	}
-		for (var k = 0; k <= 31; k++){dayValues[k] = 0 }
-		for (var m = 0; m <= 31; m++){prevMonthDayValues[m] = 0 }
-		for (var a = 0; a <= 12; a++){monthValues[a] = 0 }
-		for (var b = 0; b <= 12; b++){prevYearMonthValues[b] = 0 }
-		for (var d = 0; d <= 24; d++){rollingfiveminuteValues[d] = 0 }
-		for (var e = 0; e <= 10; e++){yearValues[e] = 0 }
+		for (var i = 0; i <= 180; i++){yesterday[i]= 0	}
+		
+		for (var i = 0; i <= 180; i++){fiveminuteValuesProd[i] = 0}  //moet 180 zijn (15 uur /dag 12 x per uur (elke 5 mins))
+		for (var i = 0; i <= 180; i++){yesterdayProd[i]= 0}
+		
+		
+		for (var i = 0; i <= 31; i++){dayValues[i] = 0 }
+		for (var i = 0; i <= 31; i++){prevMonthDayValues[i] = 0 }
+		for (var i = 0; i <= 12; i++){monthValues[i] = 0 }
+		for (var i = 0; i <= 12; i++){prevYearMonthValues[i] = 0 }
+		for (var i = 0; i <= 24; i++){rollingfiveminuteValues[i] = 0 }
+		for (var i = 0; i <= 24; i++){rollingfiveminuteValuesProd[i] = 0 }
+		for (var i = 0; i <= 10; i++){yearValues[i] = 0 }
 
 		
 		try {
@@ -165,7 +194,9 @@ App {
 		}
 
 		try {var fiveminuteValuesString = solarPanel_fiveminuteValues.read() ; if (fiveminuteValuesString.length >2 ){ fiveminuteValues = fiveminuteValuesString.split(',') }} catch(e) { }
+		try {var fiveminuteValuesStringProd = solarPanel_fiveminuteValuesProd.read() ; if (fiveminuteValuesStringProd.length >2 ){ fiveminuteValuesProd = fiveminuteValuesStringProd.split(',') }} catch(e) { }
 		try {var yesterdayString = solarPanel_yesterday.read() ; if (yesterdayString.length >2 ){yesterday = yesterdayString.split(',')}} catch(e) { }
+		try {var yesterdayStringProd = solarPanel_yesterdayProd.read() ; if (yesterdayStringProd.length >2 ){yesterdayProd = yesterdayStringProd.split(',')}} catch(e) { }
 		try {var dayValuesString = solarPanel_dailyTotals.read() ; if (dayValuesString.length >2 ){dayValues = dayValuesString.split(',')}} catch(e) {}
 		try {var prevMonthDayValuesString = solarPanel_dailyTotals_prevMonth.read() ; if (fprevMonthDayValuesString.length >2 ){prevMonthDayValues = prevMonthDayValuesString.split(',')}} catch(e) {}
 		try {var monthValuesString = solarPanel_monthTotals.read() ; if (monthValuesString.length >2 ){monthValues = monthValuesString.split(',')}} catch(e) {}
@@ -210,6 +241,20 @@ App {
 							for (var c = 0; c <= 180; c++){yesterday[i]= 0} ; 
 							if (debugOutput) console.log("*********SolarPanel last timestamp is not from today or yesterday so also clear yesterday array")
 					} 
+					
+					if (lastWriteDate == yesterdayDate){
+							yesterdayProd = fiveminuteValuesProd; 
+							if (debugOutput) console.log("*********SolarPanel last timestamp is from yesterday so copy today to yesterday")
+					}
+					if (lastWriteDate != todayFDate){
+							for (var i = 0; i <= 180; i++){fiveminuteValuesProd[i] = 0}; 
+							if (debugOutput) console.log("*********SolarPanel last timestamp is not from today so clear 5 min array")
+					}
+					if (lastWriteDate != yesterdayDate & lastWriteDate != todayFDate ){
+							for (var c = 0; c <= 180; c++){yesterdayProd[i]= 0} ; 
+							if (debugOutput) console.log("*********SolarPanel last timestamp is not from today or yesterday so also clear yesterday array")
+					} 
+					
 					if (lastWriteDate.getMonth() == (todayFDate.getMonth()-1)) {
 							prevMonthDayValues = dayValues  ; 
 							if (debugOutput) console.log("*********SolarPanel last timestamp is from prev month so copy day array to prev day array")
@@ -248,6 +293,121 @@ App {
 		if (debugOutput) console.log("*********SolarPanel oldYearValue:" + oldYearValue)
 	}
 	
+	
+//////////////////////////////////////////////////////////////// RRD  DATA  //////////////////////////////////////////////////////////////////////////
+
+	function dataRequestForProdCallback(initVar, varPrefix, findMax, success, response, batchDone) {
+		var rddValue = 0
+		if (debugOutput) console.log("*********SolarPanel Start parsing RRD data")
+
+		if (typeof JSON.stringify(response) == 'undefined' || typeof JSON.stringify(response) == 'null' || JSON.stringify(response) == null ){	
+			currentPowerProd = rddValue
+		}
+		else{
+			if (debugOutput) console.log("*********SolarPanel JSON.stringify(response): " + JSON.stringify(response))
+			var JsonString = JSON.stringify(response)
+			var JsonObject= JSON.parse(JsonString)
+			var dataArray = JsonObject.data
+
+			for (var i in dataArray){
+				rddValue = JsonObject.data[i].value
+				if (debugOutput) console.log("*********SolarPanel Start parsing rddValue: "  + rddValue)
+				if (debugOutput) console.log("*********SolarPanel rddValue (" + JsonObject.data[i].timestamp + ") : " + rddValue)
+				if (typeof rddValue === 'undefined' || typeof rddValue === 'null' || rddValue === null ) rddValue = 0
+				currentPowerProd = rddValue
+			}
+		}
+	}
+
+	function dataRequestForUsageCallback(initVar, varPrefix, findMax, success, response, batchDone) {
+		var rddValue = 0
+		if (debugOutput) console.log("*********SolarPanel Start parsing RRD data")
+
+		if (typeof JSON.stringify(response) == 'undefined' || typeof JSON.stringify(response) == 'null' || JSON.stringify(response) == null ){	
+			currentPowerProd = rddValue
+		}
+		else{
+			if (debugOutput) console.log("*********SolarPanel JSON.stringify(response): " + JSON.stringify(response))
+			var JsonString = JSON.stringify(response)
+			var JsonObject= JSON.parse(JsonString)
+			var dataArray = JsonObject.data
+
+			for (var i in dataArray){
+				rddValue = JsonObject.data[i].value
+				if (debugOutput) console.log("*********SolarPanel Start parsing rddValue: "  + rddValue)
+				if (debugOutput) console.log("*********SolarPanel rddValue (" + JsonObject.data[i].timestamp + ") : " + rddValue)
+				if (typeof rddValue === 'undefined' || typeof rddValue === 'null' || rddValue === null ) rddValue = 0
+				currentUsage = parseInt(rddValue)
+			}
+		}
+	}
+
+	function requestRRDData(what) {
+		//what = "Now", "Hour", "Day","prodNow", "prodHour" or "prodDay"
+		var args = [];
+		
+		console.log("*********SolarPanel Start requesting RRD data")
+		
+		if (what == "Now"){
+			var d = new Date();
+			var hourTileEndTime5min = d;
+			d.setMinutes((hourTileEndTime5min.getMinutes() - 5), 0, 0);
+			var hourTileStartTime5min = d;
+			var from5min = graphUtils.dateToISOString(new Date(hourTileStartTime5min));
+			var to5min = graphUtils.dateToISOString(new Date());
+
+			//flow 5 mins
+			var argsElec = new EnergyInsights.Definitions.RequestArgs("electricity", "consumption", "flow", false, undefined, from5min, to5min ,["hourTilePower", true]);
+			args.push(argsElec)
+			
+			console.log("*********SolarPanel Start requesting data Now")
+			EnergyInsights.Functions.requestBatchData(args, util.partialFn(dataRequestForUsageCallback, 1));	
+		}
+		
+		if (what == "Day"){
+			var	startDate, endDate = new Date();
+			endDate = graphUtils.dayStart(endDate);
+			startDate = new Date(endDate);
+			startDate.setDate(endDate.getDate() - 1);
+			var from = graphUtils.dateToISOString(startDate);
+			var to = graphUtils.dateToISOString(endDate);
+		
+			//per day
+			var argsUnitElec = new EnergyInsights.Definitions.RequestArgs("electricity", "consumption", "quantity", false, "days", from, to ,["dayTilePower", false]);
+			args.push(argsUnitElec);
+			EnergyInsights.Functions.requestBatchData(args, util.partialFn(dataRequestForUsageCallback, 1));	
+		}
+		
+
+		if (what == "prodNow"){
+			var d = new Date();
+			var hourTileEndTime5min = d;
+			d.setMinutes((hourTileEndTime5min.getMinutes() - 5), 0, 0);
+			var hourTileStartTime5min = d;
+			var from5min = graphUtils.dateToISOString(new Date(hourTileStartTime5min));
+			var to5min = graphUtils.dateToISOString(new Date());
+
+			//flow 5 mins
+			var argsElec = new EnergyInsights.Definitions.RequestArgs("electricity", "production", "flow", false, undefined, from5min, to5min ,["hourTilePower", true]);
+			args.push(argsElec)
+			EnergyInsights.Functions.requestBatchData(args, util.partialFn(dataRequestForProdCallback, 1));	
+		}
+
+		if (what == "prodDay"){
+			var	startDate, endDate = new Date();
+			endDate = graphUtils.dayStart(endDate);
+			startDate = new Date(endDate);
+			startDate.setDate(endDate.getDate() - 1);
+			var from = graphUtils.dateToISOString(startDate);
+			var to = graphUtils.dateToISOString(endDate);
+		
+			//per day
+			var argsUnitElec = new EnergyInsights.Definitions.RequestArgs("electricity", "production", "quantity", false, "days", from, to ,["dayTilePower", false]);
+			args.push(argsUnitElec);
+			EnergyInsights.Functions.requestBatchData(args, util.partialFn(dataRequestForUsageCallback, 1));	
+		}
+	}
+
 /////////////////////////////////////////////////////////////////GROWATT//////////////////////////////////////////////////////////////////////////////	
 
     function getGrowattStep1(){
@@ -628,6 +788,11 @@ App {
 		newArray[minsfromsevenIndex] = parseInt(currentPower)
 		fiveminuteValues = newArray
 		
+		var newArrayProd = []
+		newArrayProd = fiveminuteValuesProd
+		newArrayProd[minsfromsevenIndex] = parseInt(currentPowerProd)
+		fiveminuteValuesProd = newArrayProd
+		
 		if (mins >= 10 & mins < 16){  //every hour
 			//Write 5minute values to file
 			var fiveminuteValuesString = fiveminuteValues[0]
@@ -635,7 +800,14 @@ App {
 				fiveminuteValuesString += "," + fiveminuteValues[j]
 			}
 			solarPanel_fiveminuteValues.write(fiveminuteValuesString)
-		
+			
+			//Write 5minute production values to file
+			var fiveminuteValuesStringProd = fiveminuteValuesProd[0]
+			for (var j = 1; j <= 180; j++) { 
+				fiveminuteValuesStringProd += "," + fiveminuteValuesProd[j]
+			}
+			solarPanel_fiveminuteValuesProd.write(fiveminuteValuesStringProd)
+
 			//Write new daytotal to daily file  each hour
 			dayValues[dday] = parseFloat(todayValue).toFixed(2)
 			var dayTotal2 = dayValues[0]
@@ -663,18 +835,31 @@ App {
 		}
 
 		//make new rolling array each 5 mins
-		if (debugOutput) console.log("*********SolarPanel calculating rollingfiveminuteValues minsfromseven" + minsfromseven)
+		if (debugOutput) console.log("*********SolarPanel calculating rollingfiveminuteValues minsfromsevenIndex" + minsfromsevenIndex)
 		var x2now  = minsfromsevenIndex
 		var x2twohoursAgo  = x2now - 24  //less 2 hours
 		var newArray5 = []
+		maxRollingY = 0
 		for (var y = x2twohoursAgo; y <= x2now; y++) { 
 							newArray5.push(fiveminuteValues[y])
+							if (parseInt(maxRollingY) < parseInt(fiveminuteValues[y])){maxRollingY = fiveminuteValues[y]}
 						}
 		rollingfiveminuteValues = newArray5
+		
+		//make new rolling array for production each 5 mins
+		if (debugOutput) console.log("*********SolarPanel calculating rollingfiveminuteValues minsfromsevenIndex" + minsfromsevenIndex)
+		var x2now  = minsfromsevenIndex
+		var x2twohoursAgo  = x2now - 24  //less 2 hours
+		var newArray5Prod = []
+		for (var y = x2twohoursAgo; y <= x2now; y++) { 
+							newArray5Prod.push(fiveminuteValuesProd[y])
+						}
+		rollingfiveminuteValuesProd = newArray5Prod
+		
 
-		var now = new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate(), dateTimeNow.getHours(), dateTimeNow.getMinutes())
-		var oneHoursEarlier= new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate(), dateTimeNow.getHours()-1, dateTimeNow.getMinutes())
-		var twoHoursEarlier= new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate(), dateTimeNow.getHours()-2, dateTimeNow.getMinutes())
+		now = new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate(), dateTimeNow.getHours(), dateTimeNow.getMinutes())
+		oneHoursEarlier= new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate(), dateTimeNow.getHours()-1, dateTimeNow.getMinutes())
+		twoHoursEarlier= new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate(), dateTimeNow.getHours()-2, dateTimeNow.getMinutes())
 		rollingMinX = Qt.formatDateTime(twoHoursEarlier,"hh") + ":" + Qt.formatDateTime(twoHoursEarlier,"mm")
 		rollingCenterX = Qt.formatDateTime(oneHoursEarlier,"hh") + ":" + Qt.formatDateTime(oneHoursEarlier,"mm")
 		rollingMaxX = Qt.formatDateTime(now,"hh") + ":" + Qt.formatDateTime(now,"mm")
@@ -711,6 +896,29 @@ App {
 			yesterdayString += "," + "0"
 		}
 		solarPanel_fiveminuteValues.write(zeroString)
+	
+	//Write 5minute production values to file
+		yesterdayProd = fiveminuteValuesProd
+		var yesterdayStringProd = yesterdayProd[0]
+		for (var j = 1; j <= 180; j++) { 
+			yesterdayStringProd += "," + yesterdayProd[j]
+		}
+		solarPanel_yesterdayProd.write(yesterdayStringProd)
+
+	//clear the old production fiveminute array
+		var newArray2Prod = []
+		for (var g = 0; g <= 180; g++) {
+			newArray2Prod.push(0)
+		}
+		fiveminuteValuesProd = newArray2Prod
+	
+	//clear the 5 minutes production file so we will start a new fresh day
+		var zeroStringProd = "0"
+		for (var z = 1; z <= 180; z++) { 
+			yesterdayStringProd += "," + "0"
+		}
+		solarPanel_fiveminuteValuesProd.write(zeroStringProd)
+
 	
 	//Write new daytotal to daily file
 		dayValues[dday] = parseFloat(todayValue).toFixed(2)
@@ -833,6 +1041,8 @@ App {
 				if (debugOutput) console.log("*********SolarPanel nextday : " + nextday)
 					
 				if (dtime>=700 & dtime<2300){  //it is daytime
+					requestRRDData("prodNow")
+					requestRRDData("Now")
 					getData()
 				}
 			

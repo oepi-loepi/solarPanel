@@ -52,18 +52,48 @@ Tile {
 	
 	 Text {
             id: curPower
-            text: app.currentPower + " W"
+            text: "Opbr.: " + app.currentPower + " W"
 			color: !dimState ? "black" : "white"
             anchors {
                 top: maand.bottom
                 topMargin: 2
                 horizontalCenter: parent.horizontalCenter
             }
-            font.pixelSize: isNxt? 30:25
+            font.pixelSize: isNxt? 25:20
             font.family: qfont.bold.name
 			visible: (app.enableSleep||!dimState )
     }
-	
+
+	Text {
+            id: curProdPower
+            text: "Lev.: " + app.currentPowerProd + " W"
+	    color: !dimState ? "black" : "white"
+            anchors {
+                top: curPower.bottom
+                topMargin: 3
+                horizontalCenter: parent.horizontalCenter
+            }
+            font.pixelSize: isNxt? 25:20
+            font.family: qfont.bold.name
+			visible: (app.enableSleep||!dimState )
+    }
+
+	Text {
+            id: curUsagePower
+            text: "Usage: " + app.currentUsage + " W"
+	    color: !dimState ? "black" : "white"
+            anchors {
+                top: curProdPower.bottom
+                topMargin: 3
+                horizontalCenter: parent.horizontalCenter
+            }
+            font.pixelSize: isNxt? 25:20
+            font.family: qfont.bold.name
+			visible: (app.enableSleep||!dimState )
+    }
+
+
+
 }
 
 

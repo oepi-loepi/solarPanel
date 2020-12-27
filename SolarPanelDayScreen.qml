@@ -48,6 +48,7 @@ Screen {
 	specialBarIndex  : daynumber
 	showSpecialBar : true
 	dataValues:  prevmonth? app.prevMonthDayValues : app.dayValues
+	
   }
   
   NewTextLabel {
