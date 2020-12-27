@@ -658,8 +658,14 @@ App {
 							totalValue= 0
 							doData()
 						}
+						if (zeversolararray[12]!="OK"){
+							currentPower = 0
+							doData()
+						}
 				} else {
 						if (debugOutput) console.log("*********SolarPanel error: " + http.status)
+						currentPower = 0
+						doData()
 				}
 			}
 		}
