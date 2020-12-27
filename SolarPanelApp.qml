@@ -96,8 +96,8 @@ App {
 	property string smaPassWord : "SMA Password"
 	property string kostalUrl : ""
 	property string zeversolarUrl : ""
-	property string pvOutputApiKey : "97b351278b11a29d3c47c81ddd1084991e7cea58"
-    property string pvOutputSid : "80847"
+	property string pvOutputApiKey : ""
+    property string pvOutputSid : ""
 	
 	property variant solarpanelSettingsJson : {
 			'selectedInverter': "",
