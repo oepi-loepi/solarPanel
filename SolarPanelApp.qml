@@ -119,7 +119,7 @@ App {
 		
 		try {
 			solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
-			selectedInverter = solarpanelSettingsJson['selectedInverter']
+			selectedInverter = solarpanelSettingsJson['selectedInverter-v2']
 			passWord = solarpanelSettingsJson['passWord']
 			userName = solarpanelSettingsJson['userName']
 			apiKey = solarpanelSettingsJson['apiKey']
@@ -470,7 +470,7 @@ App {
 		var tmpenableSleep = ""
 		if (enableSleep == true) {tmpenableSleep = "Yes";} else {tmpenableSleep = "No";	}
 		var setJson = {
-			"selectedInverter" 	: selectedInverter,
+			"selectedInverter-v2" 	: selectedInverter,
 			"passWord" : passWord,
 			"userName" : userName,
 			"apiKey" : apiKey,
