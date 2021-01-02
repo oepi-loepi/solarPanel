@@ -382,10 +382,10 @@ Item {
 		width: barGraphRect.width
 		Repeater {
 			id: barHourRepeater
-			model: !isRolling? 6 : 7
+			model: !isRolling? 7 : 7
 			Item {
 				height: isNxt? 8:6
-				width: !isRolling?  (barGraphRect.width / 5) : (barGraphRect.width / 6)
+				width: !isRolling?  (barGraphRect.width / 6) : (barGraphRect.width / 6)
 				Rectangle {
 					id: hourbar
 					color: hourGridColor
@@ -401,7 +401,7 @@ Item {
 					color: textXaxisColor
 					font.pixelSize: valueSize
 					font.family: valueFont
-					text: ((index*3)+7) + ".00"
+					text: ((index*3)+5) + ".00"
 					anchors {
 						top: hourbar.bottom
 						topMargin: isNxt ? 10:8

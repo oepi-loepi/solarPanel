@@ -45,9 +45,9 @@ App {
 
 	property int 	maxWattage : 300
 	property int 	tempConfigListIndex
-	property string rollingMinX :"07:00"
-	property string rollingCenterX : "08:00"
-    property string rollingMaxX :"09:00"
+	property string rollingMinX :"05:00"
+	property string rollingCenterX : "06:00"
+    property string rollingMaxX :"07:00"
 	property int 	minsfromsevenIndex
 	property int 	nextday
 	property date 	dateTimeNow
@@ -110,8 +110,8 @@ App {
 
 		
 	Component.onCompleted: { //clear array
-		for (var i = 0; i <= 180; i++){fiveminuteValues[i] = 0}  //moet 180 zijn (15 uur /dag 12 x per uur (elke 5 mins))
-		for (var i = 0; i <= 180; i++){fiveminuteValuesProd[i] = 0}  //moet 180 zijn (15 uur /dag 12 x per uur (elke 5 mins))
+		for (var i = 0; i <= 216; i++){fiveminuteValues[i] = 0}  //moet 216 zijn (15 uur /dag 12 x per uur (elke 5 mins))
+		for (var i = 0; i <= 216; i++){fiveminuteValuesProd[i] = 0}  //moet 216 zijn (15 uur /dag 12 x per uur (elke 5 mins))
 		for (var i = 0; i <= 24; i++){rollingfiveminuteValues[i] = 0 }
 		for (var i = 0; i <= 24; i++){rollingfiveminuteValuesProd[i] = 0 }
 
@@ -155,7 +155,7 @@ App {
 				if (debugOutput) console.log("*********SolarPanel lastWriteDate:" + lastWriteDate)
 
 				if  (lastWriteDate != todayFDate){							//timestamp is not from today so do something
-					for (var i = 0; i <= 180; i++){fiveminuteValues[i] = 0};
+					for (var i = 0; i <= 216; i++){fiveminuteValues[i] = 0};
 					for (var i = 0; i <= 24; i++){rollingfiveminuteValues[i] = 0 }
 					if (debugOutput) console.log("*********SolarPanel last timestamp is not from today so clear 5 min array")
 
@@ -318,14 +318,14 @@ App {
 		if (mins >= 10 & mins < 16){  //every hour
 			//Write 5minute values to file
 			var fiveminuteValuesString = fiveminuteValues[0]
-			for (var j = 1; j <= 180; j++) { 
+			for (var j = 1; j <= 216; j++) { 
 				fiveminuteValuesString += "," + fiveminuteValues[j]
 			}
 			solarPanel_fiveminuteValues.write(fiveminuteValuesString)
 			
 			//Write 5minute production values to file
 			var fiveminuteValuesStringProd = fiveminuteValuesProd[0]
-			for (var j = 1; j <= 180; j++) { 
+			for (var j = 1; j <= 216; j++) { 
 				fiveminuteValuesStringProd += "," + fiveminuteValuesProd[j]
 			}
 			solarPanel_fiveminuteValuesProd.write(fiveminuteValuesStringProd)
@@ -378,7 +378,7 @@ App {
 	
 	//clear the 5 minutes file so we will start a new fresh day
 		var zeroString = "0"
-		for (var z = 1; z <= 180; z++) { 
+		for (var z = 1; z <= 216; z++) { 
 			zeroStringString += "," + "0"
 		}
 		solarPanel_fiveminuteValues.write(zeroString)
@@ -386,14 +386,14 @@ App {
 
 	//clear the old production fiveminute array
 		var newArray2Prod = []
-		for (var g = 0; g <= 180; g++) {
+		for (var g = 0; g <= 216; g++) {
 			newArray2Prod.push(0)
 		}
 		fiveminuteValuesProd = newArray2Prod
 	
 	//clear the 5 minutes production file so we will start a new fresh day
 		var zeroStringProd = "0"
-		for (var z = 1; z <= 180; z++) { 
+		for (var z = 1; z <= 216; z++) { 
 			yesterdayStringProd += "," + "0"
 		}
 		
@@ -437,13 +437,13 @@ App {
 					dday = dateTimeNow.getDate()
 					hrs = parseInt(Qt.formatDateTime(dateTimeNow,"hh"))
 					mins = parseInt(Qt.formatDateTime(dateTimeNow,"mm"))
-					var minsfromseven = ((hrs-7)*60) + mins
+					var minsfromseven = ((hrs-5)*60) + mins
 					minsfromsevenIndex  = parseInt(minsfromseven/5)
 				if (debugOutput) console.log("*********SolarPanel minsfromseven : " + minsfromseven)
 				if (debugOutput) console.log("*********SolarPanel dtime : " + dtime)
 				if (debugOutput) console.log("*********SolarPanel minsfromsevenIndex : " + minsfromsevenIndex)
 					
-				if (dtime>=700 & dtime<2300){  //it is daytime
+				if (dtime>=500 & dtime<2300){  //it is daytime
 					requestRRDData()
 					getData()
 				}
