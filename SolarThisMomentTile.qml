@@ -12,12 +12,13 @@ Tile {
 		property int animationIndex: 0
 	}
 
-	onClicked: stage.openFullscreen(app.solarPanelScreenUrl)
+	onClicked: stage.openFullscreen(app.solarPanelConfigScreenUrl)
 
 	onValueProducedChanged: {
 		if (isNaN(valueProduced) || valueProduced === 0)
 			p.animationIndex = 0;
 	}
+
 
 	Text {
 		id: tileTitle
@@ -31,7 +32,7 @@ Tile {
 			pixelSize: qfont.tileTitle
 		}
 		color: dimmableColors.tileTitleColor
-		text: qsTr("Solar this moment")
+		text: "SolarPanel: " + app.selectedInverter
 	}
 
 	Image {

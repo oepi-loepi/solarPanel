@@ -16,80 +16,67 @@ Tile {
 			topMargin:parent.height/4
 		}
 		onClicked: {
-			stage.openFullscreen(app.solarPanelScreenUrl)
+			stage.openFullscreen(app.solarPanelConfigScreenUrl)
 		}
 	}
 
-    Text {
-            id: today
-            text: "Vandaag: " + app.todayValue + " kWh"
-			color: !dimState ? "black" : "white"
-            anchors {
-                top: parent.top
-                topMargin: 2
-                left: parent.left
-                leftMargin : 2
-            }
-            font.pixelSize: isNxt? 15:12
-            font.family: qfont.regular.name
-			visible: (app.enableSleep||!dimState )
-    }
+	Text {
+		id: tileTitle
+		anchors {
+			baseline: parent.top
+			baselineOffset: 30
+			horizontalCenter: parent.horizontalCenter
+		}
+		font {
+			family: qfont.regular.name
+			pixelSize: qfont.tileTitle
+		}
+		color: dimmableColors.tileTitleColor
+		text: "SolarPanel: " + app.selectedInverter
+	}
 
-    Text {
-            id: maand
-            text: "Mnd: " + parseInt(app.monthValue) + " kWh"
-			color: !dimState ? "black" : "white"
-            anchors {
-                top: parent.top
-                topMargin: 2
-                right: parent.right
-                rightMargin : 2
-            }
-            font.pixelSize: isNxt? 15 : 12
-            font.family: qfont.regular.name
-			visible: (app.enableSleep||!dimState )
-    }
 	
-	 Text {
-            id: curPower
-            text: "Opbr.: " + app.currentPower + " W"
-			color: !dimState ? "black" : "white"
-            anchors {
-                top: maand.bottom
-                topMargin: 4
-                horizontalCenter: parent.horizontalCenter
-            }
-            font.pixelSize: isNxt? 25:20
-            font.family: qfont.bold.name
-			visible: (app.enableSleep||!dimState )
+	Text {
+		id: curPower
+		text: "Zon: " + app.currentPower + " W"
+		color: !dimState? "black" : "white"
+		anchors {
+			top: tileTitle.bottom
+			topMargin: isNxt? 5:4
+			horizontalCenter: parent.horizontalCenter
+		}
+		font.pixelSize: isNxt? 25:20
+		font.family: qfont.bold.name
+    }
+
+
+   
+	Text {
+		id: curProdPower
+		text: "Lev.: " + app.currentPowerProd + " W"
+		color: !dimState ? "black" : "white"
+		anchors {
+			top: curPower.bottom
+			topMargin: 3
+			horizontalCenter: parent.horizontalCenter
+		}
+		font.pixelSize: isNxt? 25:20
+		font.family: qfont.bold.name
+		visible: (app.enableSleep||!dimState )
     }
 
 	Text {
-            id: curProdPower
-            text: "Lev.: " + app.currentPowerProd + " W"
-	    color: !dimState ? "black" : "white"
-            anchors {
-                top: curPower.bottom
-                topMargin: 3
-                horizontalCenter: parent.horizontalCenter
-            }
-            font.pixelSize: isNxt? 25:20
-            font.family: qfont.bold.name
-			visible: (app.enableSleep||!dimState )
-    }
-
-	Text {
-            id: curUsagePower
-            text: "Verbruik: " + app.currentUsage + " W"
-	    color: !dimState ? "black" : "white"
-            anchors {
-                top: curProdPower.bottom
-                topMargin: 3
-                horizontalCenter: parent.horizontalCenter
-            }
-            font.pixelSize: isNxt? 25:20
-            font.family: qfont.bold.name
-			visible: (app.enableSleep||!dimState )
+		id: curUsagePower
+		text: "Verbruik: " + app.currentUsage + " W"
+		color: !dimState ? "black" : "white"
+		anchors {
+			top: curProdPower.bottom
+			topMargin: 3
+			horizontalCenter: parent.horizontalCenter
+		}
+		font.pixelSize: isNxt? 25:20
+		font.family: qfont.bold.name
+		visible: (app.enableSleep||!dimState )
     }
 
 
