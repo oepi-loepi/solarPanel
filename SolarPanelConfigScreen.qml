@@ -506,37 +506,33 @@ Screen {
 			
 			
 			case 2: {
-			/*	try {
+				try {
 					configfileString =  hcb_rrd_Configfile.read()
-					oldconfigfileString = configfileString
-					if ((configfileString.indexOf("<name>elec_quantity_nt_produ</name>") == -1 )  &&  (configfileString.indexOf("<name>elec_quantity_lt_produ</name>") == -1)) {//no production so lets create them
+					if (configfileString.indexOf("<name>elec_produ_flow</name>") >-1) {
+						console.log("*********SolarPanel not mergin production because database is available ")
+						app.popupString = "Production databases reeds aanwezig" + "..." 
+					}
+					else{ //no production so lets create them
 						console.log("*********SolarPanel needtochange part 1")
 						needRestart = true
 						var hcb_rrd_ConfigfileArray = configfileString.split("</Config>")
 						var mergeFileString = mergeFile1.read()
-						//console.log("*********SolarPanel mergeFileString : " + mergeFileString)
 						var newFileString = hcb_rrd_ConfigfileArray[0] + "" + mergeFileString
-						//console.log("*********SolarPanel newFileString : " + newFileString)
 						hcb_rrd_Configfile.write(newFileString)
-						app.popupString = "Productie databases aangemaakt" + "..." 
-					}
-					else{
-						console.log("*********SolarPanel not mergin production because database is available ")
-						app.popupString = "Productie databases reeds aanwezig" + "..." 
+						app.popupString = "Production databases aangemaakt" + "..."
 					}
 				} catch(e) { }
-			*/
 				break;
 			}
 			
 			case 3: {
 				try {
 					configfileString =  hcb_rrd_Configfile.read()
-					if ((configfileString.indexOf("<name>elec_solar_quantity</name>") > -1 )  ||  (configfileString.indexOf("<name>elec_produ_flow</name>") >-1) ||  (configfileString.indexOf("<name>elec_solar_quantity</name>") >-1)) {//no production so lets create them
+					if ((configfileString.indexOf("<name>elec_solar_quantity</name>") > -1 )  ||  (configfileString.indexOf("<name>elec_solar_quantity</name>") >-1)) {
 						console.log("*********SolarPanel not mergin solar because database is available ")
 						app.popupString = "Solar databases reeds aanwezig" + "..." 
 					}
-					else{
+					else{//no solar so lets create them
 						console.log("*********SolarPanel needtochange part 2")
 						needRestart = true
 						var hcb_rrd_ConfigfileArray = configfileString.split("</Config>")
