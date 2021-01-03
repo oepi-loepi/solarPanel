@@ -1,20 +1,5 @@
 
 
-
-   <rrdLogger>
-    <package>hcb_rrd</package>
-    <uuid>solarpanel_elec_produ_flow</uuid>
-    <name>elec_produ_flow</name>
-    <internalAddress>elec_produ_flow</internalAddress>
-    <visibility>0</visibility><deviceUuid>11111111-1111-1111-1111-11111111111b</deviceUuid><deviceVar>CurrentElectricityFlow</deviceVar><deviceSvc>ElectricityFlowMeter</deviceSvc><sampleType>double</sampleType><rra>
-    <binLength>300</binLength>
-    <bins>8928</bins>
-    <futureBins>0</futureBins>
-    <consolidator>avg</consolidator>
-    <name>5min</name>
-    <minSamplesPerBin>1</minSamplesPerBin>
-    <saveInterval>1</saveInterval></rra></rrdLogger>
-
     <rrdLogger>
     <package>hcb_rrd</package>
     <uuid>solarpanel_elec_solar_flow</uuid>
