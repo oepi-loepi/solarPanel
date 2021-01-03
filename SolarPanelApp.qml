@@ -25,6 +25,9 @@ App {
 	property url 	thumbnailIcon2: "qrc:/tsc/HomeSunny"
 	property url 	thumbnailIcon3: "qrc:/tsc/HomeSunny"
 	
+	property		SolarPanelScreen solarPanelScreen
+	property url 	solarPanelScreenUrl : "SolarPanelScreen.qml"
+
 	property		SolarPanelConfigScreen  solarPanelConfigScreen
 	property url 	solarPanelConfigScreenUrl : "SolarPanelConfigScreen.qml"
 	property url 	solarThisMomentTileUrl : "SolarThisMomentTile.qml"
@@ -39,6 +42,8 @@ App {
 	property string currentPowerProd : "0"
 	property string currentUsage : "0"
     property string dtime : "0001"
+	
+	property string succesTime: ""
 
     property string totalValue : "0"
 	property string oldTotalValue : "0"
@@ -52,6 +57,7 @@ App {
 	property int 	nextday
 	property date 	dateTimeNow
 	property int 	dday
+	property int	month
 	property int 	hrs
 	property int 	mins
 	property int	maxRollingY
@@ -101,6 +107,7 @@ App {
 		registry.registerWidget("tile", graph2SolarHourTileUrl, this, null,  {thumbLabel: qsTr("Solar Uren"), thumbIcon:  thumbnailIcon3, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("screen", solarPanelConfigScreenUrl, this, "solarPanelConfigScreen")
 		registry.registerWidget("popup", solarRebootPopupUrl, solarPanelApp, "solarRebootPopup");
+		registry.registerWidget("screen", solarPanelScreenUrl, this, "solarPanelScreen")
 	}
 
 	FileIO {id: solarpanelSettingsFile;	source: "file:///mnt/data/tsc/solarpanel_userSettings.json"}
@@ -132,40 +139,34 @@ App {
 		} catch(e) {
 		}
 
-
+		var lastWriteDate = ""
+		
 		try {var fiveminuteValuesString = solarPanel_fiveminuteValues.read() ; if (fiveminuteValuesString.length >2 ){ fiveminuteValues = fiveminuteValuesString.split(',') }} catch(e) { }
 		try {var fiveminuteValuesStringProd = solarPanel_fiveminuteValuesProd.read() ; if (fiveminuteValuesStringProd.length >2 ){ fiveminuteValuesProd = fiveminuteValuesStringProd.split(',') }} catch(e) { }
-		try {var totalValueString = solarPanel_totalValue.read; if (totalValueString.length > 0 ){oldTotalValue = parseInt(totalValueString)}} catch(e) {}
-		try {var solarPanel_lastWriteString = solarPanel_lastWrite.read} catch(e) {}
+		try {var totalValueString = solarPanel_totalValue.read(); if (totalValueString.length > 0 ){oldTotalValue = parseInt(totalValueString)}} catch(e) {}
+		try {lastWriteDate = (solarPanel_lastWrite.read()).toString().trim() } catch(e) {}
+	
 		
 		if (debugOutput) console.log("*********SolarPanel trying to resolve old values")
-		var todaydate = new Date()
+		if (debugOutput) console.log("*********SolarPanel starting to load lastwrite timestamp file: "  + lastWriteDate)
 		currentPower = 0
-		
-		try {
-			if (debugOutput) console.log("*********SolarPanel starting to load lastwrite timestamp file")
-			var oldDateStr = solarPanel_lastWrite.read()
-			if (debugOutput) console.log("*********SolarPanel oldDateStr:" + oldDateStr)
-			if (oldDateStr.length > 2 ){	
-			//old timestamp found
-				var todayFDate = Qt.formatDate(todaydate, "yyMMdd")
-				var yesterdayDate =  Qt.formatDate(new Date(todaydate.getFullYear(), todaydate.getMonth(), todaydate.getDate()-1), "yyMMdd")
-				var lastWriteDate =  Qt.formatDate(new Date (oldDateStr), "yyMMdd")
 
-				if (debugOutput) console.log("*********SolarPanel todayFDate:" + todayFDate)
-				if (debugOutput) console.log("*********SolarPanel yesterdayDate:" + yesterdayDate)
-				if (debugOutput) console.log("*********SolarPanel lastWriteDate:" + lastWriteDate)
+		if (lastWriteDate.length > 2 ){	
+			var todaydate = new Date()
+			var todayFDate = (todaydate.getDate() + "-" + parseInt(Qt.formatDateTime(todaydate,"MM"))).toString().trim()
+			
+			if (debugOutput) console.log("*********SolarPanel todayFDate:" + todayFDate)
+			if (debugOutput) console.log("*********SolarPanel lastWriteDate:" + lastWriteDate)
 
-				if  (lastWriteDate != todayFDate){							//timestamp is not from today so do something
-					for (var i = 0; i <= 216; i++){fiveminuteValues[i] = 0};
-					for (var i = 0; i <= 24; i++){rollingfiveminuteValues[i] = 0 }
-					if (debugOutput) console.log("*********SolarPanel last timestamp is not from today so clear 5 min array")
-
-				}
+			if  (lastWriteDate !== todayFDate){
+				for (var i = 0; i <= 216; i++){fiveminuteValues[i] = 0};
+				for (var i = 0; i <= 24; i++){rollingfiveminuteValues[i] = 0 }
+				for (var i = 0; i <= 216; i++){fiveminuteValuesProd[i] = 0};
+				for (var i = 0; i <= 24; i++){rollingfiveminuteValuesProd[i] = 0 }
+				if (debugOutput) console.log("*********SolarPanel last timestamp is not from today so clear 5 min array")
 			}
-		} 
-		catch(e) {
 		}
+
 		if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
 	}
 	
@@ -252,6 +253,7 @@ App {
 	function parseReturnData(v0,v1,v2,v3,v4,v5,v6,v7,v8){
 		console.log("*********SolarPanel got data from Plugin returnString: " + v8)
 		if (v8 == "succes"){
+			succesTime = Qt.formatDateTime(dateTimeNow,"ddd d-M  hh:mm")
 			currentPower = v0					
 			totalValue= v1
 			if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
@@ -330,7 +332,7 @@ App {
 				fiveminuteValuesStringProd += "," + fiveminuteValuesProd[j]
 			}
 			solarPanel_fiveminuteValuesProd.write(fiveminuteValuesStringProd)
-			solarPanel_lastWrite.write(dateTimeNow)
+			solarPanel_lastWrite.write(dday + "-" + month)
 
 		}
 
@@ -409,8 +411,7 @@ App {
 		oldTotalValue=totalValue
 		solarPanel_fiveminuteValuesProd.write(zeroStringProd)
 		solarPanel_totalValue.write(parseInt(totalValue))
-		solarPanel_lastWrite.write(dateTimeNow)
-		
+		solarPanel_lastWrite.write(dday + "-" + month)
 	}
 	
 ///////////////////////////////////////// TIMERS /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -438,6 +439,7 @@ App {
 					dtime = parseInt(Qt.formatDateTime (dateTimeNow,"hh") + Qt.formatDateTime (dateTimeNow,"mm"))
 				if (debugOutput) console.log("*********SolarPanel dtime: " + dtime)
 					dday = dateTimeNow.getDate()
+					month = parseInt(Qt.formatDateTime(dateTimeNow,"MM"))
 					hrs = parseInt(Qt.formatDateTime(dateTimeNow,"hh"))
 					mins = parseInt(Qt.formatDateTime(dateTimeNow,"mm"))
 					var minsfromseven = ((hrs-5)*60) + mins

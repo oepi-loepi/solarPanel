@@ -3,67 +3,65 @@ import BasicUIControls 1.0
 import qb.components 1.0
 
 Screen {
-	id: solarPanelScreen
-	
-	property int daynumber
-	property int monthnumber
+	id: solarPanelTodayScreen
 	
 	onShown: {    
-		var d = new Date()
-		daynumber = parseInt(Qt.formatDate (d,"d"))
-		monthnumber = parseInt(Qt.formatDate (d,"M"))
 		addCustomTopRightButton("Instellingen")
-	}
-
-	onCustomButtonClicked: {
-			if (app.solarPanelConfigScreen) {app.solarPanelConfigScreen.show()};
-	}
-
-
-	Grid {
-		columns: 2
-		spacing: 2
-		
-		anchors {
-            top: parent.top
-            topMargin: isNxt? 30: 25
-			left : daybarGraph.left 
-            leftMargin : daybarGraph.valueSize*3
-        }
-		Text { color: "black";font.pixelSize: isNxt ? 18:14; font.family: qfont.regular.name ;text: "Inverter :" }
-		Text { color: "black";font.pixelSize: isNxt ? 18:14; font.family: qfont.regular.name ;text: app.selectedInverter }
-		Text { color: "black";font.pixelSize: isNxt ? 18:14; font.family: qfont.regular.name ;text: "Huidig : "}
-		Text { color: "black";font.pixelSize: isNxt ? 18:14; font.family: qfont.regular.name ;text: app.currentPower + " Watt" }
-		Text { color: "black";font.pixelSize: isNxt ? 18:14; font.family: qfont.regular.name ;text: "Vandaag : "  }
-		Text { color: "black";font.pixelSize: isNxt ? 18:14; font.family: qfont.regular.name ;text: app.todayValue + " kWh" }
-		Text { color: "black";font.pixelSize: isNxt ? 18:14; font.family: qfont.regular.name ;text: "Maand : " ; visible: (app.selectedInverter.toLowerCase()!="sma")}
-		Text { color: "black";font.pixelSize: isNxt ? 18:14; font.family: qfont.regular.name ;text: app.monthValue + " kWh" ; visible: (app.selectedInverter.toLowerCase()!="sma") }
-		Text { color: "black";font.pixelSize: isNxt ? 18:14; font.family: qfont.regular.name ;text: "Jaar : " ; visible: (app.selectedInverter.toLowerCase()!="kostal piko") }
-		Text { color: "black";font.pixelSize: isNxt ? 18:14; font.family: qfont.regular.name ;text: app.yearValue + " kWh" ; visible: (app.selectedInverter.toLowerCase()!="kostal piko")}
-		Text { color: "black";font.pixelSize: isNxt ? 18:14; font.family: qfont.regular.name ;text: "Totaal : "; visible: (app.selectedInverter.toLowerCase()!="sma")}
-		Text { color: "black";font.pixelSize: isNxt ? 18:14; font.family: qfont.regular.name ;text: app.totalValue + " kWh" ; visible: (app.selectedInverter.toLowerCase()!="sma")}
-	}
-
-////////////////////////////////////////////////////HOUR//////////////////////////////////////////////
-	SolarBarGraph {
-        id: hourbarGraph
-        anchors {
-            top: parent.top
-            topMargin: isNxt? 30:25
-            right : parent.right
-            rightMargin : isNxt? 30:25
-        }
-        height:  isNxt? parent.height/2 - 70 :  parent.height/2 - 56
-        width: isNxt? parent.width/2 - 50 : parent.width/2 - 40
+    }
 	
+	onCustomButtonClicked: {
+		stage.openFullscreen(app.solarPanelConfigScreenUrl)
+	}
+	
+	
+	Text{
+		id: dateText
+		text: app.succesTime
+		font.pixelSize: isNxt? 20:16
+		font.family:  qfont.bold.name
+		anchors {
+            horizontalCenter: parent.horizontalCenter
+			top: parent.top
+			topMargin: isNxt? 4:3
+        }
+		color : "grey"
+	}
+	
+	Text{
+		id: panelText
+		text: "Omvormer: " + app.selectedInverter + "     Huidig: " + app.currentPower + " Watt" +  "     Totaal: " +  parseInt(app.totalValue/1000) + " kWh"
+		font.pixelSize: isNxt? 25:20
+		font.family:  qfont.bold.name
+		anchors {
+            horizontalCenter: parent.horizontalCenter
+			top: dateText.bottom
+			topMargin: isNxt? 10:8
+        }
+		color : "grey"
+	}
+	
+
+	
+////////////////////////////////////////////////////DAY//////////////////////////////////////////////
+	
+	SolarBarGraph {
+        id: todaybarGraph
+        anchors {
+            bottom: parent.bottom
+            bottomMargin: isNxt? 80:64
+            left : parent.left
+            leftMargin : isNxt? 10:8
+        }
+        height:  isNxt? parent.height-200 : parent.height-160
+        width: isNxt?  parent.width - 40 : parent.width - 32
+		
 		isAreaGraph : true
-		//manualMax: app.maxWattage
 		hourGridColor: "red"
-		titleText:"Vandaag in Watt"
+		titleText: "   Vandaag in Watt"
 		titleFont: qfont.bold.name
-		titleSize: isNxt ? 16 : 12
+		titleSize: isNxt ? 20 : 16
 		showTitle: true
-		backgroundcolor : "white"
+		backgroundcolor : "lightgrey"
 		axisColor : "black"
 		barColor : "blue"
 		lineXaxisvisible : true
@@ -77,94 +75,69 @@ Screen {
 		levelTextColor : "blue"
 		showLevels  : true
 		showValuesOnLevel : true
-		specialBarColor :"red"
-		specialBarIndex  : daynumber
 		showSpecialBar : false
-		dataValues: app.fiveminuteValues
-		onClicked: {
-				stage.openFullscreen(app.solarPanelTodayScreenUrl)
-		}	
+		dataValues:  app.fiveminuteValues
+		
+		isStacked : true
+		specialBarColor2 :"green"
+		specialBarIndex2  : 0
+		showSpecialBar2 : false
+		barColor2 : "yellow"
+		dataValues2: app.fiveminuteValuesProd
 	}
-////////////////////////////////////////////////////DAY//////////////////////////////////////////////
-	SolarBarGraph {
-        id: daybarGraph
-        anchors {
+	
+	Rectangle{
+		id: rect1
+		anchors {
             bottom: parent.bottom
-            bottomMargin:  isNxt? 30:25
+            bottomMargin: isNxt? 10:8
             left : parent.left
-            leftMargin :  isNxt?  10:8
+            leftMargin : isNxt? 100:80
         }
-       height:  isNxt? parent.height/2 - 70 :  parent.height/2 - 56
-        width: isNxt? parent.width/2 - 50 : parent.width/2 - 40
-		
-		titleText:"Dagen in kWh"
-		titleFont: qfont.bold.name
-		titleSize: isNxt ? 16 : 12
-		showTitle: true
-		backgroundcolor : "white"
-		axisColor : "black"
-		barColor : "blue"
-		lineXaxisvisible : true
-		textXaxisColor : "red"
-		stepXtext: 5
-		valueFont: qfont.regular.name
-		valueSize: isNxt ? 16 : 12
-		valueTextColor : "black"
-		showValuesOnBar : false
-		levelColor :"red"
-		levelTextColor : "blue"
-		showLevels  : true
-		showValuesOnLevel : true
-		specialBarColor :"red"
-		specialBarIndex  : daynumber
-		showSpecialBar : true
-		dataValues: app.dayValues
-		
-		onClicked: {
-				stage.openFullscreen(app.solarPanelDayScreenUrl)
-		}
+        height:  isNxt? 20: 16
+        width: isNxt?  40 : 32
+		color : "yellow"
 	}
-
-//////////////////////////////MONTH////////////////////////////////////////
- 	
-	SolarBarGraph {
-        id: monthGraph
-        anchors {
-            bottom: parent.bottom
-            bottomMargin:  isNxt? 30:25
-            right : parent.right
-            rightMargin : isNxt? 30:25
+	
+	Text{
+		id: txt1
+		text: "Teruglevering"
+		font.pixelSize: isNxt? 15:12
+		font.family: qfont.regular.name
+		anchors {
+            verticalCenter: rect1.verticalCenter
+            left : rect1.right
+            leftMargin : isNxt? 10:8
         }
-       height:  isNxt? parent.height/2 - 70 :  parent.height/2 - 56
-        width: isNxt? parent.width/2 - 50 : parent.width/2 - 40
-		
-		titleText:"Maanden in kWh"
-		titleFont: qfont.bold.name
-		titleSize: isNxt ? 16 : 12
-		showTitle: true
-		backgroundcolor : "white"
-		axisColor : "black"
-		barColor : "blue"
-		lineXaxisvisible : true
-		textXaxisColor : "red"
-		stepXtext: 5
-		valueFont: qfont.regular.name
-		valueSize: isNxt ? 16 : 12
-		valueTextColor : "black"
-		showValuesOnBar : false
-		levelColor :"red"
-		levelTextColor : "blue"
-		showLevels  : true
-		showValuesOnLevel : true
-		specialBarColor :"red"
-		specialBarIndex  : monthnumber
-		showSpecialBar : true
-		dataValues: app.monthValues
-		
-		onClicked: {
-				stage.openFullscreen(app.solarPanelMonthScreenUrl)
-		}	
+		color : "yellow"
 	}
+	
+	
+	Rectangle{
+		id: rect2
+		anchors {
+            verticalCenter: rect1.verticalCenter
+            left :  txt1.right
+            leftMargin : 100
+        }
+        height:  isNxt? 20: 16
+        width: isNxt?  40 : 32
+		color : "blue"
+	}
+	
+	Text{
+		id: txt2
+		text: "Zonnepanelen"
+		font.pixelSize: isNxt? 15:12
+		font.family: qfont.regular.name
+		anchors {
+            verticalCenter: rect1.verticalCenter
+            left : rect2.right
+            leftMargin : isNxt? 10:8
+        }
+		color : "blue"
+	}
+	
 }
 
 

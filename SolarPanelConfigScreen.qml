@@ -42,6 +42,7 @@ Screen {
 	
 	property int configChangeStep : 0
 	property bool stepRunning : false
+	property bool needReboot : false
 	property bool needRestart : false
 	property string oldconfigfileString
 	property string oldConfigScsyncFileString
@@ -467,7 +468,7 @@ Screen {
 					var n202 = configfileString.indexOf('</SolarDisplay>',n201)
 					console.log("*********SolarPanel oldvalue of SolarDisplay: " + configfileString.substring(n201, n202))
 					if (configfileString.substring(n201, n202) != "<SolarDisplay>1"){
-						needRestart = true
+						needReboot = true
 						rewrite_hcb_scsync = true
 						console.log("*********SolarPanel setting SolarDisplay to 1 ")
 						var newconfigfileString = configfileString.substring(1, n201) + "<SolarDisplay>1" + configfileString.substring(n202, configfileString.length)
@@ -481,7 +482,7 @@ Screen {
 					var n204 = configfileString.indexOf('</SolarActivated>',n203)
 					console.log("*********SolarPanel oldvalue of SolarDisplay: " + configfileString.substring(n203, n204))
 					if (configfileString.substring(n203, n204) != "<SolarActivated>1"){
-						needRestart = true
+						needReboot = true
 						rewrite_hcb_scsync = true
 						console.log("*********SolarPanel setting SolarActivated to 1 ")
 						var newconfigfileString = configfileString.substring(1, n203) + "<SolarActivated>1" + configfileString.substring(n204, configfileString.length)
@@ -491,7 +492,7 @@ Screen {
 						console.log("*********SolarPanel no need to update SolarActivated")
 					}
 					if (rewrite_hcb_scsync){
-						needRestart = true
+						needReboot = true
 						hcb_scsync_Configfile.write(newconfigfileString)
 						console.log("*********SolarPanel new hcb_scsync saved")
 						app.popupString = "Zon op Toon geactiveerd" + "..." 
@@ -514,7 +515,7 @@ Screen {
 					}
 					else{ //no production so lets create them
 						console.log("*********SolarPanel needtochange part 1")
-						needRestart = true
+						needReboot = true
 						var hcb_rrd_ConfigfileArray = configfileString.split("</Config>")
 						var mergeFileString = mergeFile1.read()
 						var newFileString = hcb_rrd_ConfigfileArray[0] + "" + mergeFileString
@@ -534,7 +535,7 @@ Screen {
 					}
 					else{//no solar so lets create them
 						console.log("*********SolarPanel needtochange part 2")
-						needRestart = true
+						needReboot = true
 						var hcb_rrd_ConfigfileArray = configfileString.split("</Config>")
 						var mergeFileString = mergeFile2.read()
 						var newFileString = hcb_rrd_ConfigfileArray[0] + "" + mergeFileString
@@ -545,7 +546,6 @@ Screen {
 			
 				break;
 			}
-			
 			
 			case 4: {
 				if (app.selectedInverter != selectedInverter){
@@ -591,7 +591,7 @@ Screen {
 			}
 				
 			case 6: {
-				if (!needRestart) {
+				if (!needRestart && !needReboot) {
 					console.log("*********SolarPanel no changes so no need to restart")
 					app.popupString = "Restart niet nodig" + "..." 
 					app.solarRebootPopup.hide()
@@ -603,7 +603,7 @@ Screen {
 				break;
 			}
 			case 7: {
-				if (needRestart) {
+				if (needRestart || needReboot) {
 					console.log("*********SolarPanel creating backup of config_rdd ")
 					hcb_rrd_Configfile_bak.write(oldconfigfileString)
 					app.popupString = "Backup van config_rdd maken" + "..." 
@@ -611,7 +611,7 @@ Screen {
 				break;
 			}
 			case 8: {
-				if (needRestart) {
+				if (needRestart || needReboot) {
 					console.log("*********SolarPanel creating backup of config scsync ")
 					hcb_scsync_Configfile_bak.write(oldConfigScsyncFileString)
 					app.popupString = "Backup van config_scsync maken" + "..." 
@@ -620,10 +620,21 @@ Screen {
 			}
 			
 			case 9: {
-				if (needRestart) {
-					console.log("*********SolarPanel reboot")
+				if (needRestart && !needReboot) {
+					console.log("*********SolarPanel restart")
 					console.log("*********SolarPanel restartingToon")
 					app.popupString = "Herstarten van Toon" + "..." 
+					app.solarRebootPopup.hide()
+					Qt.quit();
+				}
+				break;
+			}
+			
+			case 10: {
+				if (needReboot) {
+					console.log("*********SolarPanel reboot")
+					console.log("*********SolarPanel restartingToon")
+					app.popupString = "Rebooten van Toon" + "..." 
 					app.solarRebootPopup.hide()
 					app.restartToon()
 				}
@@ -634,6 +645,8 @@ Screen {
 				app.solarRebootPopup.hide()
 				configChangeStep = 20
 				stepRunning = false
+				needReboot = false
+				needRestart = false
 				hide()
 				break;
 			}

@@ -42,7 +42,6 @@ Tile {
             bottom: parent.bottom
 			bottomMargin: isNxt? 30:25
 			left:parent.left
-			//horizontalCenter: parent.horizontalCenter
         }
         height:  isNxt? 90:72
         width: isNxt? parent.width - 20 : parent.width - 16
@@ -82,7 +81,7 @@ Tile {
 			topMargin:parent.height/4
 		}
 		onClicked: {
-			stage.openFullscreen(app.solarPanelConfigScreenUrl)
+			stage.openFullscreen(app.solarPanelScreenUrl)
 		}
 	}
 

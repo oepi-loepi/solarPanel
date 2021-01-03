@@ -84,7 +84,7 @@ Text {
 			topMargin:parent.height/4
 		}
 		onClicked: {
-			stage.openFullscreen(app.solarPanelConfigScreenUrl)
+			stage.openFullscreen(app.solarPanelScreenUrl)
 		}
 	}
 }
