@@ -472,6 +472,9 @@ Screen {
 						var newconfigfileString = configfileString.substring(1, n201) + "<SolarDisplay>1" + configfileString.substring(n202, configfileString.length)
 						configfileString = newconfigfileString
 					}
+					else{
+						console.log("*********SolarPanel no need to update SolarDisplay")
+					}
 
 					var n203 = configfileString.indexOf('<SolarActivated>')
 					var n204 = configfileString.indexOf('</SolarActivated>',n203)
@@ -483,10 +486,18 @@ Screen {
 						var newconfigfileString = configfileString.substring(1, n203) + "<SolarActivated>1" + configfileString.substring(n204, configfileString.length)
 						configfileString = newconfigfileString
 					}
+					else{
+						console.log("*********SolarPanel no need to update SolarActivated")
+					}
 					if (rewrite_hcb_scsync){
 						needRestart = true
 						hcb_scsync_Configfile.write(newconfigfileString)
 						console.log("*********SolarPanel new hcb_scsync saved")
+						app.popupString = "Zon op Toon geactiveerd" + "..." 
+					}
+					else{
+						console.log("*********SolarPanel no need to rewrite_hcb_scsync")
+						app.popupString = "Zon op Toon was reeds geactiveerd" + "..." 
 					}
 				} catch(e) { }
 				break;
@@ -506,9 +517,11 @@ Screen {
 						var newFileString = hcb_rrd_ConfigfileArray[0] + "" + mergeFileString
 						//console.log("*********SolarPanel newFileString : " + newFileString)
 						hcb_rrd_Configfile.write(newFileString)
+						app.popupString = "Productie databases aangemaakt" + "..." 
 					}
 					else{
 						console.log("*********SolarPanel not mergin production because database is available ")
+						app.popupString = "Productie databases reeds aanwezig" + "..." 
 					}
 				} catch(e) { }
 			*/
@@ -525,9 +538,11 @@ Screen {
 						var mergeFileString = mergeFile2.read()
 						var newFileString = hcb_rrd_ConfigfileArray[0] + "" + mergeFileString
 						hcb_rrd_Configfile.write(newFileString)
+						app.popupString = "Solar databases aangemaakt" + "..."
 					}
 					else{
 						console.log("*********SolarPanel not mergin solar because database is available ")
+						app.popupString = "Solar databases reeds aanwezig" + "..." 
 					}
 				} catch(e) { }
 			
@@ -546,9 +561,11 @@ Screen {
 								console.log("*********SolarPanel new Plugin: " + http.responseText)
 								pluginFile.write(http.responseText)
 								needRestart = true
+								app.popupString = "Plugin opgehaald voor " + selectedInverter + "..." 
 							}
 							else {
 								console.log("*********SolarPanel error retrieving new Plugin: " + http.status)
+								app.popupString = "Fout in ophalen van plugin" + "..." 
 							}
 						}
 					}
@@ -558,6 +575,7 @@ Screen {
 				}
 				else{
 					console.log("*********SolarPanel inverter plugin does not have to change")
+					app.popupString = "Omvormer niet gewijzigd" + "..." 
 				}
 				break;
 			}
@@ -571,12 +589,14 @@ Screen {
 				app.apiKey = tempApiKey
 				app.urlString = tempURL
 				app.saveSettings()
+				app.popupString = "Instellingen opgeslagen" + "..." 
 				break;
 			}
 				
 			case 6: {
 				if (!needRestart) {
 					console.log("*********SolarPanel no changes so no need to restart")
+					app.popupString = "Restart niet nodig" + "..." 
 					app.solarRebootPopup.hide()
 					configChangeStep = 20
 					stepRunning = false
@@ -589,6 +609,7 @@ Screen {
 				if (needRestart) {
 					console.log("*********SolarPanel creating backup of config_rdd ")
 					hcb_rrd_Configfile_bak.write(oldconfigfileString)
+					app.popupString = "Backup van config_rdd maken" + "..." 
 				}
 				break;
 			}
@@ -596,6 +617,7 @@ Screen {
 				if (needRestart) {
 					console.log("*********SolarPanel creating backup of config scsync ")
 					hcb_scsync_Configfile_bak.write(oldConfigScsyncFileString)
+					app.popupString = "Backup van config_scsync maken" + "..." 
 				}
 				break;
 			}
@@ -604,6 +626,7 @@ Screen {
 				if (needRestart) {
 					console.log("*********SolarPanel reboot")
 					console.log("*********SolarPanel restartingToon")
+					app.popupString = "Herstarten van Toon" + "..." 
 					app.solarRebootPopup.hide()
 					app.restartToon()
 				}

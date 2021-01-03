@@ -28,7 +28,7 @@ Popup {
 			baselineOffset: Math.round(153 * verticalScaling)
 		}
 
-		text: "SolarPanel instellen en herstarten als nodig" + "..."
+		text: app.popupString
 		color: colors.softUpdatePopTextBig
 		font.pixelSize: qfont.secondaryImportantBodyText
 		font.family: qfont.semiBold.name

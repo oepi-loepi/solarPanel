@@ -65,6 +65,8 @@ App {
 	
 	
 	property string configMsgUuid : ""
+	property string popupString : "SolarPanel instellen en herstarten als nodig" + "..."
+
 	
 	property variant fiveminuteValues: []
 	property variant rollingfiveminuteValues:[]
@@ -243,7 +245,7 @@ App {
 ///////////////////////////////////////////////////////////////// GET DATA //////////////////////////////////////////////////////////////////////////////	
 
 	function getData(){
-		Solar.getSolarData(passWord,userName,apiKey,siteID,urlString,totalValue)
+		Solar.getSolarData(passWord,userName,apiKey,siteID,urlString, parseInt(oldTotalValue))
 		if (debugOutput) console.log("*********SolarPanel send request to Plugin")
     }
 
@@ -252,9 +254,9 @@ App {
 		if (v8 == "succes"){
 			currentPower = v0					
 			totalValue= v1
-			if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
-			if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
-			if (debugOutput) console.log("*********SolarPanel statuscode:" + v7)
+			console.log("*********SolarPanel currentPower:" + currentPower)
+			console.log("*********SolarPanel total:" + totalValue)
+			console.log("*********SolarPanel statuscode:" + v7)
 			doData()
 		}
 	}
@@ -280,7 +282,7 @@ App {
 	
     function doData(){
 		if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
-		if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
+		console.log("*********SolarPanel total:" + totalValue)
 		
 		var newArray = []
 		newArray = fiveminuteValues
@@ -299,21 +301,6 @@ App {
 		http2.open("GET", url2, true)
         http2.send()
 		
-		var http3 = new XMLHttpRequest()
-        if (debugOutput) console.log("*********SolarPanel unixTime : " + parseInt(dateTimeNow.getTime()/1000))
-		var url3 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_quantity&rra=5yrhour&samples=%7B%22" + parseInt(dateTimeNow.getTime()/1000)+ "%22%3A" + parseInt(totalValue) + "%7D"
-		if (debugOutput) console.log("*********SolarPanel url3 : " + url3)
-		http3.open("GET", url3, true)
-        http3.send()
-		
-		
-		var http4 = new XMLHttpRequest()
-        if (debugOutput) console.log("*********SolarPanel unixTime : " + parseInt(dateTimeNow.getTime()/1000))
-		var url4 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_quantity&rra=10yrdays&samples=%7B%22" + parseInt(dateTimeNow.getTime()/1000)+ "%22%3A" + parseInt(totalValue) + "%7D"
-		if (debugOutput) console.log("*********SolarPanel url4 : " + url3)
-		http4.open("GET", url4, true)
-        http4.send()
-		
 
 		if (mins >= 10 & mins < 16){  //every hour
 			//Write 5minute values to file
@@ -330,6 +317,14 @@ App {
 			}
 			solarPanel_fiveminuteValuesProd.write(fiveminuteValuesStringProd)
 			solarPanel_lastWrite.write(dateTimeNow)
+			
+			var http3 = new XMLHttpRequest()
+			if (debugOutput) console.log("*********SolarPanel unixTime : " + parseInt(dateTimeNow.getTime()/1000))
+			var url3 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_quantity&rra=5yrhours&samples=%7B%22" + parseInt(dateTimeNow.getTime()/1000)+ "%22%3A" + parseInt(totalValue) + "%7D"
+			if (debugOutput) console.log("*********SolarPanel url3 : " + url3)
+			http3.open("GET", url3, true)
+			http3.send()
+		
 		}
 
 		//make new rolling array each 5 mins
@@ -374,7 +369,20 @@ App {
 
 	function writeDailyData(){
 		if (debugOutput) console.log("*********SolarPanel dtime: " + dtime )
-	
+
+		var http4 = new XMLHttpRequest()
+        if (debugOutput) console.log("*********SolarPanel unixTime : " + parseInt(dateTimeNow.getTime()/1000))
+		var url4 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_quantity&rra=10yrdays&samples=%7B%22" + parseInt(dateTimeNow.getTime()/1000)+ "%22%3A" + parseInt(totalValue) + "%7D"
+		if (debugOutput) console.log("*********SolarPanel url4 : " + url3)
+		http4.open("GET", url4, true)
+        http4.send()
+		
+	//clear the old fiveminute array
+		var newArray2 = []
+		for (var g = 0; g <= 216; g++) {
+			newArray2.push(0)
+		}
+		fiveminuteValues = newArray2	
 	
 	//clear the 5 minutes file so we will start a new fresh day
 		var zeroString = "0"
@@ -403,11 +411,11 @@ App {
 		solarPanel_lastWrite.write(dateTimeNow)
 		
 		var http4 = new XMLHttpRequest()
-        if (debugOutput) console.log("*********SolarPanel unixTime : " + parseInt(dateTimeNow.getTime()/1000))
+        	if (debugOutput) console.log("*********SolarPanel unixTime : " + parseInt(dateTimeNow.getTime()/1000))
 		var url4 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_quantity&rra=10yrdays&samples=%7B%22" + parseInt(dateTimeNow.getTime()/1000)+ "%22%3A" + parseInt(totalValue) + "%7D"
 		if (debugOutput) console.log("*********SolarPanel url4 : " + url4)
 		http4.open("GET", url4, true)
-        http4.send()
+        	http4.send()
 	}
 	
 ///////////////////////////////////////// TIMERS /////////////////////////////////////////////////////////////////////////////////////////////////
