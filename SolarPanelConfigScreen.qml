@@ -449,6 +449,7 @@ Screen {
 		
 			case 0: {
 				//console.log("*********SolarPanel show popup")
+				app.popupString = "SolarPanel instellen en herstarten als nodig" + "..."
 				app.solarRebootPopup.show()
 				break;
 			}
