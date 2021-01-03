@@ -254,9 +254,9 @@ App {
 		if (v8 == "succes"){
 			currentPower = v0					
 			totalValue= v1
-			console.log("*********SolarPanel currentPower:" + currentPower)
-			console.log("*********SolarPanel total:" + totalValue)
-			console.log("*********SolarPanel statuscode:" + v7)
+			if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
+			if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
+			if (debugOutput) console.log("*********SolarPanel statuscode:" + v7)
 			doData()
 		}
 	}

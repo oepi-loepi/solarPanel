@@ -532,7 +532,11 @@ Screen {
 			case 3: {
 				try {
 					configfileString =  hcb_rrd_Configfile.read()
-					if ((configfileString.indexOf("<name>elec_solar_quantity</name>") == -1 )  &&  (configfileString.indexOf("<name>elec_produ_flow</name>") == -1)) {//no production so lets create them
+					if ((configfileString.indexOf("<name>elec_solar_quantity</name>") > -1 )  ||  (configfileString.indexOf("<name>elec_produ_flow</name>") >-1) ||  (configfileString.indexOf("<name>elec_solar_quantity</name>") >-1)) {//no production so lets create them
+						console.log("*********SolarPanel not mergin solar because database is available ")
+						app.popupString = "Solar databases reeds aanwezig" + "..." 
+					}
+					else{
 						console.log("*********SolarPanel needtochange part 2")
 						needRestart = true
 						var hcb_rrd_ConfigfileArray = configfileString.split("</Config>")
@@ -540,10 +544,6 @@ Screen {
 						var newFileString = hcb_rrd_ConfigfileArray[0] + "" + mergeFileString
 						hcb_rrd_Configfile.write(newFileString)
 						app.popupString = "Solar databases aangemaakt" + "..."
-					}
-					else{
-						console.log("*********SolarPanel not mergin solar because database is available ")
-						app.popupString = "Solar databases reeds aanwezig" + "..." 
 					}
 				} catch(e) { }
 			
