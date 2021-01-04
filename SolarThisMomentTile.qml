@@ -12,7 +12,7 @@ Tile {
 		property int animationIndex: 0
 	}
 
-	onClicked: stage.openFullscreen(app.solarPanelConfigScreenUrl)
+	onClicked: stage.openFullscreen(app.solarPanelScreenUrl)
 
 	onValueProducedChanged: {
 		if (isNaN(valueProduced) || valueProduced === 0)
