@@ -222,7 +222,7 @@ App {
 	function requestRRDData() {
 		//what = "Now", "Hour", "Day","prodNow", "prodHour" or "prodDay"
 		var args = [];
-		//console.log("*********SolarPanel Start requesting RRD data")
+		if (debugOutput) console.log("*********SolarPanel Start requesting RRD data")
 			var d = new Date();
 			var hourTileEndTime5min = d;
 			d.setMinutes((hourTileEndTime5min.getMinutes() - 5), 0, 0);
@@ -234,7 +234,7 @@ App {
 			var argsElec = new EnergyInsights.Definitions.RequestArgs("electricity", "consumption", "flow", false, undefined, from5min, to5min ,["hourTilePower", true]);
 			args.push(argsElec)
 			
-			//console.log("*********SolarPanel Start requesting data Now")
+			if (debugOutput) console.log("*********SolarPanel Start requesting data Now")
 			EnergyInsights.Functions.requestBatchData(args, util.partialFn(dataRequestForUsageCallback, 1));
 
 			//flow 5 mins
@@ -251,7 +251,7 @@ App {
     }
 
 	function parseReturnData(v0,v1,v2,v3,v4,v5,v6,v7,v8){
-		console.log("*********SolarPanel got data from Plugin returnString: " + v8)
+		if (debugOutput) console.log("*********SolarPanel got data from Plugin returnString: " + v8)
 		if (v8 == "succes"){
 			succesTime = Qt.formatDateTime(dateTimeNow,"ddd d-M  hh:mm")
 			currentPower = v0					
@@ -259,6 +259,11 @@ App {
 			if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
 			if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
 			if (debugOutput) console.log("*********SolarPanel statuscode:" + v7)
+			doData()
+		}
+		if (v8 == "error"){
+			currentPower = 0					
+			totalValue= totalValue
 			doData()
 		}
 	}
@@ -284,7 +289,7 @@ App {
 	
     function doData(){
 		if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
-		console.log("*********SolarPanel total:" + totalValue)
+		if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
 		
 		var newArray = []
 		newArray = fiveminuteValues

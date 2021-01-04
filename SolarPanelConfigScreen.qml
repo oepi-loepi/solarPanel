@@ -32,6 +32,8 @@ Screen {
 	property bool field4visible : false
 	property bool field5visible : false
 	
+	
+	
 	property string tempPassWord : app.passWord
 	property string tempUserName: app.userName
 	property string tempSiteID: app.siteID
@@ -46,6 +48,16 @@ Screen {
 	property bool needRestart : false
 	property string oldconfigfileString
 	property string oldConfigScsyncFileString
+	
+	property bool updatepossible : false
+	property string oldversionTotal
+	property string onlineversionTotal
+	property bool updatechecked : false
+	property bool showUpdate : false
+	property bool updated : false
+	
+	property bool debugOutput : app.debugOutput						// Show console messages. Turn on in settings file !
+	
 
 	FileIO {id: hcb_scsync_Configfile;	source: "file:///mnt/data/qmf/config/config_happ_scsync.xml"}
 	FileIO {id: hcb_scsync_Configfile_bak;	source: "file:///mnt/data/qmf/config/config_happ_scsync.solarpanelbackup"}
@@ -101,7 +113,7 @@ Screen {
 					if (http.status === 200 || http.status === 300  || http.status === 302) {
 						model.clear()
 						var JsonString = http.responseText
-						//console.log("responsetext: " +  http.responseText)
+						if (debugOutput) console.log("responsetext: " +  http.responseText)
 						var JsonObject= JSON.parse(JsonString)
 						var invertersArray = JsonObject.plugins
 						numberofItems =  invertersArray.length
@@ -113,7 +125,7 @@ Screen {
 						resumefromHttpRequest()
 					}
 					else {
-						console.log("*********SolarPanel error: " + http.status)
+						if (debugOutput) console.log("*********SolarPanel error: " + http.status)
 					}
 				}
 			}
@@ -137,7 +149,7 @@ Screen {
 
 	function setFieldText() {
 		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
-			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){ listview1.currentIndex = x2}
+			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){ listview1.currentIndex = x2 ; showUpdate = true}
 		}
 		
 		field1visible = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('ass')>-1)
@@ -166,8 +178,93 @@ Screen {
 	function saveFieldData5(text) {
 		tempURL= text
 	}
+
+	function checkforUpdates(){
+		//check current version
+		updatechecked = true
+		var oldPluginFileString = pluginFile.read()
+		var n1 = oldPluginFileString.indexOf('<version>')
+		var n2 = oldPluginFileString.indexOf('</version>',n1)
+		oldversionTotal =  (oldPluginFileString.substring(n1 + 9, n2)).trim()	
+		
+		//get filename of installed inverter
+		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
+			if (invertersNameArray[x2].toLowerCase()==app.selectedInverter.toLowerCase()){var onlinePluginFileName = filenameArray[x2]}
+			break;
+		}
+		
+		var onlineversionArray = ["0","0","0"]
+		//check online version
+		var http = new XMLHttpRequest()
+		http.onreadystatechange=function() {
+			if (http.readyState === 4){
+				if (http.status === 200) {
+					if (debugOutput) console.log("*********SolarPanel new Plugin: " + http.responseText)
+					var onlinePluginFileString = http.responseText
+					var n1 = onlinePluginFileString.indexOf('<version>')
+					var n2 = onlinePluginFileString.indexOf('</version>',n1)
+					onlineversionTotal =  (onlinePluginFileString.substring(n1 + 9, n2)).trim()			
+					compareVersions(oldversionTotal,onlineversionTotal)
+				}
+				else {
+					if (debugOutput) console.log("*********SolarPanel error retrieving new Plugin: " + http.status)
+				}
+			}
+		}
+		http.open("GET",pluginUrl + onlinePluginFileName + ".plugin.txt"  , true)
+		http.send()
+		
+		
+		
+	}
+
 	
 /////////////////////////////////////////////////////////////////////////
+
+	function compareVersions(oldversionTotal,onlineversionTotal){
+	
+		updatepossible = false
+		
+		if (debugOutput) console.log("*********SolarPanel oldvalue of Plugin : " + oldversionTotal)
+		
+		var oldversionArray = oldversionTotal.split(".")
+		if (debugOutput) console.log("*********SolarPanel oldvalue of Plugin major : " + oldversionArray[0])
+		if (debugOutput) console.log("*********SolarPanel oldvalue of Plugin minor : " + oldversionArray[1])
+		if (debugOutput) console.log("*********SolarPanel oldvalue of Plugin patch : " + oldversionArray[2])
+		if(typeof(oldversionArray[2]) == "undefined"){oldversionTotal = "0.0.0" ; oldversionArray[0] = 0 ;  oldversionArray[1] = 0  ;  oldversionArray[2] = 0 }
+		if (debugOutput) console.log("*********SolarPanel oldvalue of Plugin : " + oldversionTotal)
+		oldversionText.text =  "Oude versie: " + oldversionTotal
+		
+		if (debugOutput) console.log("*********SolarPanel oldvalue of Plugin major : " + oldversionArray[0])
+		if (debugOutput) console.log("*********SolarPanel oldvalue of Plugin minor : " + oldversionArray[1])
+		if (debugOutput) console.log("*********SolarPanel oldvalue of Plugin patch : " + oldversionArray[2])
+	
+		if (debugOutput) console.log("*********SolarPanel online of Plugin : " + onlineversionTotal)
+		var onlineversionArray = onlineversionTotal.split(".")
+		if (debugOutput) console.log("*********SolarPanel online of Plugin major : " + onlineversionArray[0])
+		if (debugOutput) console.log("*********SolarPanel online of Plugin minor : " + onlineversionArray[1])
+		if (debugOutput) console.log("*********SolarPanel online of Plugin patch : " + onlineversionArray[2])
+		
+		if(typeof(onlineversionArray[2]) == "undefined"){onlineversionTotal = "0.0.0" ; onlineversionArray[0] = 0 ;  onlineversionArray[1] = 0  ;  onlineversionArray[2] = 0 }
+		if (debugOutput) console.log("*********SolarPanel online of Plugin major : " + onlineversionArray[0])
+		if (debugOutput) console.log("*********SolarPanel online of Plugin minor : " + onlineversionArray[1])
+		if (debugOutput) console.log("*********SolarPanel online of Plugin patch : " + onlineversionArray[2])
+	
+		//compare versions
+
+		if (parseInt(onlineversionArray[0]) > parseInt(oldversionArray[0])) {
+			updatepossible = true
+		}
+		if (!updatepossible && (parseInt(onlineversionArray[1]) > parseInt(oldversionArray[1]))) {
+			updatepossible = true
+		}
+		if (!updatepossible && (parseInt(onlineversionArray[2]) > parseInt(oldversionArray[2]))) {
+			updatepossible = true
+		}
+
+		if (debugOutput) console.log("*********SolarPanel updatepossible : " + updatepossible)
+	
+	}
 
 	Text {
 		id: mytexttop1
@@ -318,6 +415,12 @@ Screen {
 			if (selectedInverter != listview1.name){
 				setFieldText()
 			}
+			if (app.selectedInverter == selectedInverter){
+				showUpdate = true
+			}else{
+				showUpdate = false
+			}
+
 		}
 	}
 
@@ -421,7 +524,112 @@ Screen {
 		}
 
 	}
+
+	NewTextLabel {
+		id: updateText
+		width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
+		height: isNxt ? 40:32
+		buttonActiveColor: "lightgreen"
+		buttonHoverColor: "blue"
+		enabled : true
+		textColor : "black"
+		buttonText:  "Controleer op updates voor " + app.selectedInverter
+		anchors {
+			top: gridContainer1.bottom
+			left: mytext1.left
+			topMargin: isNxt? 20: 16
+			}
+		onClicked: {
+			checkforUpdates()
+		}
+		visible:  !updated &&  showUpdate
+	}
 	
+	Text {
+		id:oldversionText
+		text: "Oude versie: " + oldversionTotal
+		font {
+			family: qfont.semiBold.name
+			pixelSize: isNxt ? 18:14
+		}
+		anchors {
+			top:updateText.bottom
+			left:mytext1.left
+			topMargin: isNxt ? 10 :8
+		}
+		visible : showUpdate && updatechecked
+	}
+	
+	Text {
+		id: onlineversionText
+		text: "Online versie: " + onlineversionTotal
+		font {
+			family: qfont.semiBold.name
+			pixelSize: isNxt ? 18:14
+		}
+		anchors {
+			top:oldversionText.bottom
+			left:mytext1.left
+			topMargin: isNxt ? 10 :8
+		}
+		visible : showUpdate && updatechecked
+	}
+	
+	NewTextLabel {
+		id: updatePluginText
+		width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
+		height: isNxt ? 40:32
+		buttonActiveColor: "lightgreen"
+		buttonHoverColor: "blue"
+		enabled : true
+		textColor : "black"
+		buttonText:  "Update plugin " + app.selectedInverter
+		anchors {
+			top: onlineversionText.bottom
+			left: mytext1.left
+			topMargin: isNxt? 20: 16
+			}
+		onClicked: {
+			updatePlugin()
+		}
+		visible : !updated && showUpdate && updatepossible
+	}
+	
+	function updatePlugin(){
+		app.popupString = "Plugin ophalen voor " + selectedInverter + "..."
+		app.solarRebootPopup.show()
+		var onlinePluginFileName
+		//get filename of installed inverter
+		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
+			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){onlinePluginFileName = filenameArray[x2]}
+			break;
+		}
+		needRestart = true
+		if (debugOutput) console.log("*********SolarPanel downloading new inverter plugin")
+		var http = new XMLHttpRequest()
+		http.onreadystatechange=function() {
+			if (http.readyState === 4){
+				if (http.status === 200) {
+					if (debugOutput) console.log("*********SolarPanel new Plugin: " + http.responseText)
+					pluginFile.write(http.responseText)
+					needRestart = true
+					app.popupString = "Plugin opgehaald voor " + selectedInverter + "..." 
+					oldversionTotal = onlineversionTotal
+					oldversionText.text = "Oude versie: " + oldversionTotal +  " (geupdate, restart nodig)"
+					app.solarRebootPopup.hide()
+					updated = true
+				}
+				else {
+					if (debugOutput) console.log("*********SolarPanel error retrieving new Plugin: " + http.status)
+					app.popupString = "Fout in ophalen van plugin" + "..." 
+					app.solarRebootPopup.hide()
+				}
+			}
+		}
+		http.open("GET",pluginUrl + onlinePluginFileName+ ".plugin.txt"  , true)
+		http.send()
+	}
+
 	NewTextLabel {  // for testing
 		id: configText
 		width: isNxt ? 120 : 96;  
@@ -449,7 +657,7 @@ Screen {
 		switch (configChangeStep) {
 		
 			case 0: {
-				//console.log("*********SolarPanel show popup")
+				console.log("*********SolarPanel show popup")
 				app.popupString = "SolarPanel instellen en herstarten als nodig" + "..."
 				app.solarRebootPopup.show()
 				break;
@@ -457,7 +665,7 @@ Screen {
 			
 			
 			case 1: {
-				//console.log("*********SolarPanel check Solar features in hcb_scsync ")
+				console.log("*********SolarPanel check Solar features in hcb_scsync ")
 				try {
 					var rewrite_hcb_scsync = false
 					configfileString =  hcb_scsync_Configfile.read()
@@ -549,6 +757,13 @@ Screen {
 			
 			case 4: {
 				if (app.selectedInverter != selectedInverter){
+					var onlinePluginFileName
+					//get filename of installed inverter
+					for(var x2 = 0;x2 < invertersNameArray.length;x2++){
+						if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){onlinePluginFileName = filenameArray[x2]}
+						break;
+					}
+		
 					needRestart = true
 					console.log("*********SolarPanel downloading new inverter plugin")
 					var http = new XMLHttpRequest()
@@ -566,7 +781,7 @@ Screen {
 							}
 						}
 					}
-					http.open("GET",pluginUrl + filenameArray[listview1.currentIndex] + ".plugin.txt"  , true)
+					http.open("GET",pluginUrl + onlinePluginFileName+ ".plugin.txt"  , true)
 					http.send()
 					break;
 				}
@@ -578,6 +793,17 @@ Screen {
 			}
 			
 			case 5: {
+				if ( updated){
+					needRestart = true
+					app.popupString = "Plugin was geupdate voor " + selectedInverter + "..." 
+				}
+				else{
+					app.popupString = "Plugin was niet geupdate voor " + selectedInverter + "..." 
+				}
+				break;
+			}
+			
+			case 6: {
 				console.log("*********SolarPanel save app setting")
 				app.selectedInverter = selectedInverter
 				app.passWord = tempPassWord
@@ -590,7 +816,7 @@ Screen {
 				break;
 			}
 				
-			case 6: {
+			case 7: {
 				if (!needRestart && !needReboot) {
 					console.log("*********SolarPanel no changes so no need to restart")
 					app.popupString = "Restart niet nodig" + "..." 
@@ -602,7 +828,7 @@ Screen {
 				}
 				break;
 			}
-			case 7: {
+			case 8: {
 				if (needRestart || needReboot) {
 					console.log("*********SolarPanel creating backup of config_rdd ")
 					hcb_rrd_Configfile_bak.write(oldconfigfileString)
@@ -610,7 +836,7 @@ Screen {
 				}
 				break;
 			}
-			case 8: {
+			case 9: {
 				if (needRestart || needReboot) {
 					console.log("*********SolarPanel creating backup of config scsync ")
 					hcb_scsync_Configfile_bak.write(oldConfigScsyncFileString)
@@ -619,7 +845,7 @@ Screen {
 				break;
 			}
 			
-			case 9: {
+			case 10: {
 				if (needRestart && !needReboot) {
 					console.log("*********SolarPanel restart")
 					console.log("*********SolarPanel restartingToon")
@@ -630,7 +856,7 @@ Screen {
 				break;
 			}
 			
-			case 10: {
+			case 11: {
 				if (needReboot) {
 					console.log("*********SolarPanel reboot")
 					console.log("*********SolarPanel restartingToon")
@@ -653,10 +879,9 @@ Screen {
 		}
 	}
 
-
 	Timer {
 		id: stepTimer   //interval to nicely save all and reboot
-		interval: 3000
+		interval: 2500
 		repeat:true
 		running: stepRunning 
 		triggeredOnStart: true
