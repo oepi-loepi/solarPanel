@@ -5,6 +5,7 @@ En het interval instelbaar maken
 - day production as tile
 - mod in plugin updates
 - possibility to stop polling in the configscreen
+- new tile icons
 
 
 1.1.4

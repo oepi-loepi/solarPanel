@@ -18,13 +18,13 @@ App {
 	property url 	tileUrl : "SolarPanelTile.qml"
 	property url 	tileUrl2 : "SolarPanelTile2.qml"
 	property url 	tileUrl3 : "SolarPanelTile3.qml"
-	//property url 	thumbnailIcon: "qrc:/tsc/BalloonIcon.png"
-	//property url 	thumbnailIcon2: "qrc:/tsc/BalloonIcon.png"
-	
-	property url 	thumbnailIcon: "qrc:/tsc/HomeSunny"
+	property url 	thumbnailIcon1: "qrc:/tsc/HomeSunny"
 	property url 	thumbnailIcon2: "qrc:/tsc/HomeSunny"
 	property url 	thumbnailIcon3: "qrc:/tsc/HomeSunny"
-	
+	property url 	thumbnailIcon4: "qrc:/apps/graph/drawables/ChooseTileSolarNow.svg"
+	property url 	thumbnailIcon5: "qrc:/apps/graph/drawables/ChooseHourSolarTile.svg"
+	property url 	thumbnailIcon6: "qrc:/apps/graph/drawables/ChooseTileKWh"
+
 	property		SolarPanelScreen solarPanelScreen
 	property url 	solarPanelScreenUrl : "SolarPanelScreen.qml"
 
@@ -35,7 +35,7 @@ App {
 	property url	solarGenerationTodayTileUrl : "SolarGenerationTodayTile.qml"
 	
 	property url 	solarRebootPopupUrl: "SolarRebootPopup.qml"
-	property 		Popup solarRebootPopup
+	property 	Popup solarRebootPopup
 	property variant agreementDetails: ({})
 
 
@@ -105,12 +105,12 @@ App {
 	}
 
 	function init() {
-		registry.registerWidget("tile", tileUrl, this, null, {thumbLabel: qsTr("Solar Grafiek"), thumbIcon: thumbnailIcon, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
+		registry.registerWidget("tile", tileUrl, this, null, {thumbLabel: qsTr("Solar Grafiek"), thumbIcon: thumbnailIcon1, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", tileUrl2, this, null, {thumbLabel: qsTr("SolarPanel 2"), thumbIcon: thumbnailIcon2, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", tileUrl3, this, null, {thumbLabel: qsTr("Solar Rolling"), thumbIcon: thumbnailIcon3, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
-		registry.registerWidget("tile", solarThisMomentTileUrl, this, null,  {thumbLabel: qsTr("Solar Nu"), thumbIcon:  thumbnailIcon3, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
-		registry.registerWidget("tile", graph2SolarHourTileUrl, this, null,  {thumbLabel: qsTr("Solar Uren"), thumbIcon:  thumbnailIcon3, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
-		registry.registerWidget("tile", solarGenerationTodayTileUrl, this, null,  {thumbLabel: qsTr("Solar Dag"), thumbIcon:  thumbnailIcon3, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
+		registry.registerWidget("tile", solarThisMomentTileUrl, this, null,  {thumbLabel: qsTr("Solar Nu"), thumbIcon:  thumbnailIcon4, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
+		registry.registerWidget("tile", graph2SolarHourTileUrl, this, null,  {thumbLabel: qsTr("Solar Uren"), thumbIcon:  thumbnailIcon5, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
+		registry.registerWidget("tile", solarGenerationTodayTileUrl, this, null,  {thumbLabel: qsTr("Solar Dag"), thumbIcon:  thumbnailIcon6, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
 		
 		registry.registerWidget("screen", solarPanelConfigScreenUrl, this, "solarPanelConfigScreen")
 		registry.registerWidget("popup", solarRebootPopupUrl, solarPanelApp, "solarRebootPopup");
