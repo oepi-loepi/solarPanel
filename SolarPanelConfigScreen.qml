@@ -55,6 +55,7 @@ Screen {
 	property bool updatechecked : false
 	property bool showUpdate : false
 	property bool updated : false
+	property bool updateSucces : false
 	
 	property bool debugOutput : app.debugOutput						// Show console messages. Turn on in settings file !
 	
@@ -83,6 +84,8 @@ Screen {
 	onShown: {
 		addCustomTopRightButton("Opslaan")
 		getInverters()
+		enableSleepToggle.isSwitchedOn = app.enableSleep
+		enablePollingToggle.isSwitchedOn = app.enablePolling
 		inputField1.inputText = tempPassWord
 		inputField2.inputText = tempUserName
 		inputField3.inputText = tempSiteID
@@ -121,6 +124,9 @@ Screen {
 							invertersNameArray[i] = invertersArray[i].friendlyName
 							filenameArray[i] = invertersArray[i].filename
 							inputDataType[i] = invertersArray[i].data
+							console.log(invertersNameArray[i])
+							console.log(inputDataType[i])
+							console.log(filenameArray[i])
 						}
 						resumefromHttpRequest()
 					}
@@ -151,7 +157,6 @@ Screen {
 		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
 			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){ listview1.currentIndex = x2 ; showUpdate = true}
 		}
-		
 		field1visible = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('ass')>-1)
 		field2visible = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('use')>-1)
 		field3visible = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('iteid')>-1)
@@ -190,7 +195,6 @@ Screen {
 		//get filename of installed inverter
 		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
 			if (invertersNameArray[x2].toLowerCase()==app.selectedInverter.toLowerCase()){var onlinePluginFileName = filenameArray[x2]}
-			break;
 		}
 		
 		var onlineversionArray = ["0","0","0"]
@@ -199,7 +203,7 @@ Screen {
 		http.onreadystatechange=function() {
 			if (http.readyState === 4){
 				if (http.status === 200) {
-					if (debugOutput) console.log("*********SolarPanel new Plugin: " + http.responseText)
+					console.log("*********SolarPanel new Plugin: " + http.responseText)
 					var onlinePluginFileString = http.responseText
 					var n1 = onlinePluginFileString.indexOf('<version>')
 					var n2 = onlinePluginFileString.indexOf('</version>',n1)
@@ -211,6 +215,7 @@ Screen {
 				}
 			}
 		}
+		console.log(pluginUrl + onlinePluginFileName + ".plugin.txt")
 		http.open("GET",pluginUrl + onlinePluginFileName + ".plugin.txt"  , true)
 		http.send()
 		
@@ -444,7 +449,7 @@ Screen {
 		id: enableSleepToggle
 		height:  30
 		anchors.left: showInSleep.right
-		anchors.leftMargin: isNxt ? 100 : 80
+		anchors.leftMargin: isNxt ? 140 : 112
 		anchors.top: showInSleep.top
 		leftIsSwitchedOn: false
 		onSelectedChangedByUser: {
@@ -452,6 +457,36 @@ Screen {
 				app.enableSleep = true;
 			} else {
 				app.enableSleep = false;
+			}
+		}
+	}
+	
+	
+	Text {
+		id: enablePolling
+		width:  isNxt? 160:128
+		text: "Ophalen van data ingeschakeld: "
+		font.pixelSize:  isNxt ? 18 : 14
+		font.family: qfont.semiBold.name
+		anchors {
+			left: listviewContainer1.left
+			top: showInSleep.bottom
+			topMargin: isNxt? 20 : 16
+		}
+	}
+
+	
+	OnOffToggle {
+		id: enablePollingToggle
+		height:  30
+		anchors.left: enableSleepToggle.left
+		anchors.top: enablePolling.top
+		leftIsSwitchedOn: false
+		onSelectedChangedByUser: {
+			if (isSwitchedOn) {
+				app.enablePolling = true;
+			} else {
+				app.enablePolling = false;
 			}
 		}
 	}
@@ -525,76 +560,70 @@ Screen {
 
 	}
 
-	NewTextLabel {
-		id: updateText
-		width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
-		height: isNxt ? 40:32
-		buttonActiveColor: "lightgreen"
-		buttonHoverColor: "blue"
-		enabled : true
-		textColor : "black"
-		buttonText:  "Controleer op updates voor " + app.selectedInverter
+
+	Grid {
+		id: gridContainer2
+		columns: 1
+		spacing: 2
+		
 		anchors {
 			top: gridContainer1.bottom
-			left: mytext1.left
-			topMargin: isNxt? 20: 16
-			}
-		onClicked: {
-			checkforUpdates()
+			topMargin : 20			
+			left : mytext1.left
 		}
-		visible:  !updated &&  showUpdate
-	}
+		
+		NewTextLabel {
+			id: updateText
+			width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
+			height: isNxt ? 40:32
+			buttonActiveColor: "lightgreen" ; buttonHoverColor: "blue";	enabled : true;	textColor : "black"
+			buttonText:  "Controleer op updates voor " + app.selectedInverter
+			onClicked: {checkforUpdates()}
+			visible:   showUpdate
+		}
+		
+		Text {
+			id:oldversionText
+			text: "Oude versie: " + oldversionTotal
+			font.family: qfont.semiBold.name; font.pixelSize: isNxt ? 18:14	
+			visible : showUpdate && updatechecked
+		}
 	
-	Text {
-		id:oldversionText
-		text: "Oude versie: " + oldversionTotal
-		font {
-			family: qfont.semiBold.name
-			pixelSize: isNxt ? 18:14
+		Text {
+			id: onlineversionText
+			text: "Online versie: " + onlineversionTotal
+			font.family: qfont.semiBold.name;font.pixelSize: isNxt ? 18:14
+			visible : showUpdate && updatechecked
 		}
-		anchors {
-			top:updateText.bottom
-			left:mytext1.left
-			topMargin: isNxt ? 10 :8
-		}
-		visible : showUpdate && updatechecked
-	}
 	
-	Text {
-		id: onlineversionText
-		text: "Online versie: " + onlineversionTotal
-		font {
-			family: qfont.semiBold.name
-			pixelSize: isNxt ? 18:14
+		NewTextLabel {
+			id: updatePluginText
+			width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
+			height: isNxt ? 40:32
+			buttonActiveColor: "lightgreen";buttonHoverColor: "blue";enabled : true;textColor : "black"
+			buttonText:   "Update plugin " + app.selectedInverter 
+			onClicked: {updatePlugin()}
+			visible : !updated && showUpdate && updatepossible
 		}
-		anchors {
-			top:oldversionText.bottom
-			left:mytext1.left
-			topMargin: isNxt ? 10 :8
+		
+		NewTextLabel {
+			id: forceupdatePluginText
+			width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
+			height: isNxt ? 40:32
+			buttonActiveColor: "lightgreen";buttonHoverColor: "blue";enabled : true;textColor : "black"
+			buttonText:  "Forceer reload van "  + selectedInverter
+			onClicked: {updatePlugin()}
+			visible : showUpdate && !updatepossible
 		}
-		visible : showUpdate && updatechecked
+		
+		Text {
+			id: updateSuccesText
+			text: ""
+			font.family: qfont.semiBold.name;font.pixelSize: isNxt ? 18:14
+		}
 	}
-	
-	NewTextLabel {
-		id: updatePluginText
-		width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
-		height: isNxt ? 40:32
-		buttonActiveColor: "lightgreen"
-		buttonHoverColor: "blue"
-		enabled : true
-		textColor : "black"
-		buttonText:  "Update plugin " + app.selectedInverter
-		anchors {
-			top: onlineversionText.bottom
-			left: mytext1.left
-			topMargin: isNxt? 20: 16
-			}
-		onClicked: {
-			updatePlugin()
-		}
-		visible : !updated && showUpdate && updatepossible
-	}
-	
+
+
 	function updatePlugin(){
 		app.popupString = "Plugin ophalen voor " + selectedInverter + "..."
 		app.solarRebootPopup.show()
@@ -602,7 +631,6 @@ Screen {
 		//get filename of installed inverter
 		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
 			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){onlinePluginFileName = filenameArray[x2]}
-			break;
 		}
 		needRestart = true
 		if (debugOutput) console.log("*********SolarPanel downloading new inverter plugin")
@@ -617,43 +645,30 @@ Screen {
 					oldversionTotal = onlineversionTotal
 					oldversionText.text = "Oude versie: " + oldversionTotal +  " (geupdate, restart nodig)"
 					app.solarRebootPopup.hide()
-					updated = true
+					//updated = true
+					updateSucces = true
+					needRestart = true
+					updateSuccesText.text = "Update geslaagd"
 				}
 				else {
 					if (debugOutput) console.log("*********SolarPanel error retrieving new Plugin: " + http.status)
 					app.popupString = "Fout in ophalen van plugin" + "..." 
+					updateSucces = false
+					updateSuccesText.text = "Update mislukt"
 					app.solarRebootPopup.hide()
 				}
 			}
 		}
+		if (debugOutput) console.log(pluginUrl + onlinePluginFileName+ ".plugin.txt")
 		http.open("GET",pluginUrl + onlinePluginFileName+ ".plugin.txt"  , true)
 		http.send()
 	}
 
-	NewTextLabel {  // for testing
-		id: configText
-		width: isNxt ? 120 : 96;  
-		height: isNxt ? 40:32
-		buttonActiveColor: "lightgreen"
-		buttonHoverColor: "blue"
-		enabled : true
-		textColor : "black"
-		buttonText:  "Get Config"
-		anchors {
-			top:  showInSleep.bottom
-			left: listviewContainer1.left
-			topMargin: isNxt? 5: 4
-			}
-		onClicked: {
-			configChangeStep = 0
-			stepRunning  = true
-		}
-		visible: false
-	}
 	
 	function modRRDConfig(configChangeStep){
 		var configfileString
-		console.log("*********SolarPanel configChangeStep = " + configChangeStep)
+		if (debugOutput) console.log("*********SolarPanel configChangeStep = " + configChangeStep)
+		updateSucces = true
 		switch (configChangeStep) {
 		
 			case 0: {
@@ -662,7 +677,6 @@ Screen {
 				app.solarRebootPopup.show()
 				break;
 			}
-			
 			
 			case 1: {
 				console.log("*********SolarPanel check Solar features in hcb_scsync ")
@@ -766,6 +780,7 @@ Screen {
 		
 					needRestart = true
 					console.log("*********SolarPanel downloading new inverter plugin")
+					console.log("*********SolarPanel downloading new inverter plugin : " + pluginUrl + onlinePluginFileName+ ".plugin.txt")
 					var http = new XMLHttpRequest()
 					http.onreadystatechange=function() {
 						if (http.readyState === 4){
@@ -774,10 +789,14 @@ Screen {
 								pluginFile.write(http.responseText)
 								needRestart = true
 								app.popupString = "Plugin opgehaald voor " + selectedInverter + "..." 
+								updateSucces = true
+								updateSuccesText.text = "Update geslaagd"
 							}
 							else {
 								console.log("*********SolarPanel error retrieving new Plugin: " + http.status)
-								app.popupString = "Fout in ophalen van plugin" + "..." 
+								app.popupString = "Fout in ophalen van plugin" + "..."  + http.status
+								updateSucces = false
+								updateSuccesText.text = "Update mislukt"
 							}
 						}
 					}
@@ -793,7 +812,7 @@ Screen {
 			}
 			
 			case 5: {
-				if ( updated){
+				if (updated){
 					needRestart = true
 					app.popupString = "Plugin was geupdate voor " + selectedInverter + "..." 
 				}
@@ -829,7 +848,7 @@ Screen {
 				break;
 			}
 			case 8: {
-				if (needRestart || needReboot) {
+				if ((needRestart || needReboot) && updateSucces) {
 					console.log("*********SolarPanel creating backup of config_rdd ")
 					hcb_rrd_Configfile_bak.write(oldconfigfileString)
 					app.popupString = "Backup van config_rdd maken" + "..." 
@@ -837,7 +856,7 @@ Screen {
 				break;
 			}
 			case 9: {
-				if (needRestart || needReboot) {
+				if  ((needRestart || needReboot) && updateSucces) {
 					console.log("*********SolarPanel creating backup of config scsync ")
 					hcb_scsync_Configfile_bak.write(oldConfigScsyncFileString)
 					app.popupString = "Backup van config_scsync maken" + "..." 
@@ -846,7 +865,7 @@ Screen {
 			}
 			
 			case 10: {
-				if (needRestart && !needReboot) {
+				if (needRestart && !needReboot && updateSucces ) {
 					console.log("*********SolarPanel restart")
 					console.log("*********SolarPanel restartingToon")
 					app.popupString = "Herstarten van Toon" + "..." 
@@ -857,7 +876,7 @@ Screen {
 			}
 			
 			case 11: {
-				if (needReboot) {
+				if (needReboot && updateSucces) {
 					console.log("*********SolarPanel reboot")
 					console.log("*********SolarPanel restartingToon")
 					app.popupString = "Rebooten van Toon" + "..." 
@@ -873,6 +892,7 @@ Screen {
 				stepRunning = false
 				needReboot = false
 				needRestart = false
+				updateSuccesText.text = ""
 				hide()
 				break;
 			}

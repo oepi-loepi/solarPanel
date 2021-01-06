@@ -32,6 +32,7 @@ App {
 	property url 	solarPanelConfigScreenUrl : "SolarPanelConfigScreen.qml"
 	property url 	solarThisMomentTileUrl : "SolarThisMomentTile.qml"
 	property url	graph2SolarHourTileUrl : "Graph2SolarHourTile.qml"
+	property url	solarGenerationTodayTileUrl : "SolarGenerationTodayTile.qml"
 	
 	property url 	solarRebootPopupUrl: "SolarRebootPopup.qml"
 	property 		Popup solarRebootPopup
@@ -39,6 +40,9 @@ App {
 
 
 	property string currentPower : "0"
+	property int todayValue : 0
+	property int yesterdayTotal : 0
+
 	property string currentPowerProd : "0"
 	property string currentUsage : "0"
     property string dtime : "0001"
@@ -67,8 +71,8 @@ App {
 	property date twoHoursEarlier
 	
 	property bool enableSleep : false
-	property bool debugOutput : false						// Show console messages. Turn on in settings file !
-	
+	property bool debugOutput : false	// Show console messages. Turn on in settings file !
+	property bool enablePolling : true
 	
 	property string configMsgUuid : ""
 	property string popupString : "SolarPanel instellen en herstarten als nodig" + "..."
@@ -96,6 +100,7 @@ App {
 			'siteID' : "",
 			'urlString' : "",
 			'enableSleep' : "",
+			'enablePolling' : "",
 			'DebugOn': ""
 	}
 
@@ -105,6 +110,8 @@ App {
 		registry.registerWidget("tile", tileUrl3, this, null, {thumbLabel: qsTr("Solar Rolling"), thumbIcon: thumbnailIcon3, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", solarThisMomentTileUrl, this, null,  {thumbLabel: qsTr("Solar Nu"), thumbIcon:  thumbnailIcon3, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", graph2SolarHourTileUrl, this, null,  {thumbLabel: qsTr("Solar Uren"), thumbIcon:  thumbnailIcon3, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
+		registry.registerWidget("tile", solarGenerationTodayTileUrl, this, null,  {thumbLabel: qsTr("Solar Dag"), thumbIcon:  thumbnailIcon3, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
+		
 		registry.registerWidget("screen", solarPanelConfigScreenUrl, this, "solarPanelConfigScreen")
 		registry.registerWidget("popup", solarRebootPopupUrl, solarPanelApp, "solarRebootPopup");
 		registry.registerWidget("screen", solarPanelScreenUrl, this, "solarPanelScreen")
@@ -123,9 +130,7 @@ App {
 		for (var i = 0; i <= 216; i++){fiveminuteValuesProd[i] = 0}  //moet 216 zijn (15 uur /dag 12 x per uur (elke 5 mins))
 		for (var i = 0; i <= 24; i++){rollingfiveminuteValues[i] = 0 }
 		for (var i = 0; i <= 24; i++){rollingfiveminuteValuesProd[i] = 0 }
-
-
-		
+	
 		try {
 			solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
 			selectedInverter = solarpanelSettingsJson['selectedInverter-v2']
@@ -135,6 +140,7 @@ App {
 			siteID = solarpanelSettingsJson['siteID']
 			urlString = solarpanelSettingsJson['urlString']
 			if (solarpanelSettingsJson['enableSleep'] == "Yes") {enableSleep = true} else {enableSleep = false}
+			if (solarpanelSettingsJson['enablePolling'] == "No") {enablePolling = false} else {enablePolling = true}
 			//if (solarpanelSettingsJson['DebugOn'] == "Yes") {debugOutput = true} else {debugOutput = false}
 		} catch(e) {
 		}
@@ -151,10 +157,29 @@ App {
 		if (debugOutput) console.log("*********SolarPanel starting to load lastwrite timestamp file: "  + lastWriteDate)
 		currentPower = 0
 
-		if (lastWriteDate.length > 2 ){	
-			var todaydate = new Date()
-			var todayFDate = (todaydate.getDate() + "-" + parseInt(Qt.formatDateTime(todaydate,"MM"))).toString().trim()
-			
+		var todaydate = new Date()
+		var todayFDate = (todaydate.getDate() + "-" + parseInt(Qt.formatDateTime(todaydate,"MM"))).toString().trim()
+		var yesterdayDate =  Qt.formatDate(new Date(todaydate.getFullYear(), todaydate.getMonth(), todaydate.getDate()-1), "yyMMdd")
+
+		
+		//get last totalValue4
+		var http= new XMLHttpRequest()
+		var url = "http://192.168.10.233/hcb_rrd?action=getRrdData.csv&loggerName=elec_solar_quantity&rra=10yrdays&from=03-01-2021" + Qt.formatDate( yesterdayDate, "dd-MM-yyyy")
+		http.onreadystatechange = function() { // Call a function when the state changes.
+			if (http.readyState === 4) {
+				if (http.status === 200) {
+					var firstline = http.responseText.split("\n")[0]
+					yesterdayTotal = parseInt(firstline.split(",")[1])
+					console.log("*********SolarPanel yesterdayTotal: " + yesterdayTotal)
+				} else {
+					console.log("*********SolarPanel error: " + http.status)
+				}
+			}
+		}
+		http.open("GET", url, true)
+        http.send()
+		
+		if (lastWriteDate.length > 2 ){			
 			if (debugOutput) console.log("*********SolarPanel todayFDate:" + todayFDate)
 			if (debugOutput) console.log("*********SolarPanel lastWriteDate:" + lastWriteDate)
 
@@ -259,6 +284,10 @@ App {
 			if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
 			if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
 			if (debugOutput) console.log("*********SolarPanel statuscode:" + v7)
+			if (debugOutput) console.log("*********SolarPanel yesterdayTotal: " + yesterdayTotal)
+			if (debugOutput) console.log("*********SolarPanel totalValue: " + totalValue)
+			todayValue = parseInt(totalValue - yesterdayTotal)
+			if (debugOutput) console.log("*********SolarPaneltodayValue: " + todayValue)
 			doData()
 		}
 		if (v8 == "error"){
@@ -406,13 +435,8 @@ App {
 			newArray2Prod.push(0)
 		}
 		fiveminuteValuesProd = newArray2Prod
-	
-	//clear the 5 minutes production file so we will start a new fresh day
-		var zeroStringProd = "0"
-		for (var z = 1; z <= 216; z++) { 
-			yesterdayStringProd += "," + "0"
-		}
 		
+		yesterdayTotal = totalValue
 		oldTotalValue=totalValue
 		solarPanel_fiveminuteValuesProd.write(zeroStringProd)
 		solarPanel_totalValue.write(parseInt(totalValue))
@@ -441,19 +465,19 @@ App {
             onTriggered: {
 			
 				dateTimeNow= new Date()
-					dtime = parseInt(Qt.formatDateTime (dateTimeNow,"hh") + Qt.formatDateTime (dateTimeNow,"mm"))
+				dtime = parseInt(Qt.formatDateTime (dateTimeNow,"hh") + Qt.formatDateTime (dateTimeNow,"mm"))
 				if (debugOutput) console.log("*********SolarPanel dtime: " + dtime)
-					dday = dateTimeNow.getDate()
-					month = parseInt(Qt.formatDateTime(dateTimeNow,"MM"))
-					hrs = parseInt(Qt.formatDateTime(dateTimeNow,"hh"))
-					mins = parseInt(Qt.formatDateTime(dateTimeNow,"mm"))
-					var minsfromseven = ((hrs-5)*60) + mins
-					minsfromsevenIndex  = parseInt(minsfromseven/5)
+				dday = dateTimeNow.getDate()
+				month = parseInt(Qt.formatDateTime(dateTimeNow,"MM"))
+				hrs = parseInt(Qt.formatDateTime(dateTimeNow,"hh"))
+				mins = parseInt(Qt.formatDateTime(dateTimeNow,"mm"))
+				var minsfromseven = ((hrs-5)*60) + mins
+				minsfromsevenIndex  = parseInt(minsfromseven/5)
 				if (debugOutput) console.log("*********SolarPanel minsfromseven : " + minsfromseven)
 				if (debugOutput) console.log("*********SolarPanel dtime : " + dtime)
 				if (debugOutput) console.log("*********SolarPanel minsfromsevenIndex : " + minsfromsevenIndex)
 					
-				if (dtime>=500 & dtime<2300){  //it is daytime
+				if ((dtime>=500 & dtime<2300) & enablePolling){  //it is daytime
 					requestRRDData()
 					getData()
 				}
@@ -479,6 +503,8 @@ App {
 		if (debugOutput == true) {tmpDebugOn = "Yes";} else {tmpDebugOn = "No";	}
 		var tmpenableSleep = ""
 		if (enableSleep == true) {tmpenableSleep = "Yes";} else {tmpenableSleep = "No";	}
+		var tmpenablePolling = ""
+		if (enablePolling == true) {tmpenablePolling = "Yes";} else {tmpenablePolling = "No";	}
 		var setJson = {
 			"selectedInverter-v2" 	: selectedInverter,
 			"passWord" : passWord,
@@ -487,6 +513,7 @@ App {
 			"siteID" : siteID,
 			"urlString" : urlString,
 			"enableSleep" : tmpenableSleep,
+			"enablePolling" : tmpenablePolling,
 			"DebugOn": tmpDebugOn
 		}
 		solarpanelSettingsFile.write(JSON.stringify(setJson))

@@ -1,10 +1,14 @@
 to do:
-Ik zou ook een enable/disable knop toevoegen in de instellingen om de polling stop te zetten.
 En het interval instelbaar maken
+
+1.1.5
+- day production as tile
+- mod in plugin updates
+- possibility to stop polling in the configscreen
+
 
 1.1.4
 - version control for online plugins
-
 
 1.1.3
 - extra screen before config screen with status
