@@ -16,21 +16,6 @@ Tile {
 	property alias titleText: titleText.text
 	property alias valueText: valueText.text
 
-	function dayDataOkay() {
-		return (dayUsage >= 0 && (isPowerTile ? (dayLowUsage >= 0 && (!displayInEuro || fixedDayCost >= 0)) : true));
-	}
-
-	function avgDataOkay() {
-		return (!isNaN(avgDayValue) && avgDayValue >= 0);
-	}
-
-	function updateTileInfo() {
-		console.error("Unimplemented BaseTodayTile updateTileInfo() function");
-	}
-
-	function updateTileGraphic() {
-		console.error("Unimplemented BaseTodayTile updateTileGraphic() function");
-	}
 
 	Text {
 		id: titleText

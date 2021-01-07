@@ -1,6 +1,10 @@
 to do:
 En het interval instelbaar maken
 
+
+1.1.6
+- fixed daily productio value
+
 1.1.5
 - day production as tile
 - mod in plugin updates

@@ -2,74 +2,50 @@ import QtQuick 2.1
 
 import qb.components 1.0
 import BasicUIControls 1.0
-import DateTracker 1.0
 
-BaseTodayTile {
+Tile {
 	id: barTodayTile
-
+	
+	property double dayUsage: 0
+	property double avgDayValue: 0
+	property string titleText: ""
+	property string valueText: ""
 	property alias lowerRectColor: usageIndicatorLowRect.color
 	property alias upperRectColor: usageIndicatorUpperRect.color
-
+	
 	function updateTileGraphic() {
 		var heightFullBar = backgroundRect.height - middleBarRect.height;	// full bar, subtract middle bar
 		var heightHalfBar = heightFullBar / 2;
 
-		if (dayDataOkay()) {
+		if (dayUsage>0) {
 			var usage = dayUsage;
+			var total = usage;
 			var avg = avgDayValue;
-			if (isPowerTile)
-				usage += dayLowUsage;
-			var total = usage + fixedDayCost;
 
-			if (!avgDataOkay())
-				avg = total;
-			else
-				avg += fixedDayCost;
+			var beamHeight = (total / avg) * heightHalfBar;
 
-			if (total === 0) {
-				usageIndicatorLowRect.height = 0;
-				usageIndicatorUpperRect.height = 0;
-				return;
-			}
-
-			var beamHeight = total / avg * heightHalfBar;
-			var fixedCostHeight = fixedDayCost / total * beamHeight;
-			if (fixedCostHeight > heightHalfBar)
-				fixedCostHeight = heightHalfBar;
-			fixedCostIndicatorLowRect.height = fixedCostHeight;
 			// lower part
 			if (beamHeight <= heightHalfBar) {
-				if (fixedDayCost > 0) {
-					usageIndicatorLowRect.height = beamHeight - fixedCostIndicatorLowRect.height;
-					usageIndicatorLowRect.bottomLeftRadiusRatio = 0;
-					usageIndicatorLowRect.bottomRightRadiusRatio = 0;
-				} else {
-					usageIndicatorLowRect.height = beamHeight;
-				}
-				usageIndicatorUpperRect.height = 0;
+				usageIndicatorLowRect.height = beamHeight;
 			// upper part without rounding (subtract 3 for non-rounding)
 			} else {
-				if (fixedDayCost > 0) {
-					usageIndicatorLowRect.height = heightHalfBar - fixedCostIndicatorLowRect.height;
-					usageIndicatorLowRect.bottomLeftRadiusRatio = 0;
-					usageIndicatorLowRect.bottomRightRadiusRatio = 0;
-				} else {
-					usageIndicatorLowRect.height = heightHalfBar;
-				}
 				if (beamHeight <= (heightFullBar - 3)) {
 					usageIndicatorUpperRect.height = beamHeight - heightHalfBar;
 					usageIndicatorUpperRect.topRightRadiusRatio = 0;
 					usageIndicatorUpperRect.topLeftRadiusRatio = 0;
+					usageIndicatorLowRect.height = heightHalfBar;
 				// most upper part with rounding
 				} else if (beamHeight < heightFullBar) {
 					usageIndicatorUpperRect.height = beamHeight - heightHalfBar;
 					usageIndicatorUpperRect.topRightRadiusRatio = 1;
 					usageIndicatorUpperRect.topLeftRadiusRatio = 1;
+					usageIndicatorLowRect.height = heightHalfBar;
 				// >= 200 %
 				} else {
 					usageIndicatorUpperRect.height = heightHalfBar;
 					usageIndicatorUpperRect.topRightRadiusRatio = 1;
 					usageIndicatorUpperRect.topLeftRadiusRatio = 1;
+					usageIndicatorLowRect.height = heightHalfBar;
 				}
 			}
 		} else {
@@ -77,10 +53,41 @@ BaseTodayTile {
 			usageIndicatorUpperRect.height = 0;
 		}
 	}
+	
+	Text {
+		id: titleText1
+		text: titleText
+		anchors {
+			baseline: parent.top
+			baselineOffset: Math.round(30 * verticalScaling)
+			horizontalCenter: parent.horizontalCenter
+		}
+		font {
+			family: qfont.regular.name
+			pixelSize: qfont.tileTitle
+		}
+		color: dimmableColors.tileTitleColor
+	}
 
+	Text {
+		id: valueText1
+		text: valueText
+		anchors {
+			baseline: parent.bottom
+			baselineOffset: designElements.vMarginNeg16
+			horizontalCenter: parent.horizontalCenter
+		}
+		font {
+			family: qfont.regular.name
+			pixelSize: qfont.tileText
+		}
+		color: dimmableColors.tileTextColor
+	}
+
+	
 	Rectangle {
 		id: backgroundRect
-		width: mask.width > 0 ? mask.width : Math.round(34 * horizontalScaling)
+		width: Math.round(34 * horizontalScaling)
 		height: Math.round(78 * verticalScaling)
 		anchors.centerIn: parent
 		radius: designElements.radius
@@ -95,22 +102,6 @@ BaseTodayTile {
 		color: dimmableColors.dayTileMiddleBar
 	}
 
-	StyledRectangle {
-		id: fixedCostIndicatorLowRect
-		radius: designElements.radius
-		bottomRightRadiusRatio: 1
-		bottomLeftRadiusRatio: 1
-		topRightRadiusRatio: 0
-		topLeftRadiusRatio: 0
-		width: backgroundRect.width
-		height: 0
-		anchors {
-			bottom: backgroundRect.bottom
-			horizontalCenter: parent.horizontalCenter
-		}
-		color: dimmableColors.dayTileFixedCostBar
-		mouseEnabled: false
-	}
 
 	StyledRectangle {
 		id: usageIndicatorLowRect
@@ -122,7 +113,7 @@ BaseTodayTile {
 		width: backgroundRect.width
 		height: 0
 		anchors {
-			bottom: fixedCostIndicatorLowRect.top
+			bottom: backgroundRect.bottom
 			horizontalCenter: parent.horizontalCenter
 		}
 		color: dimmableColors.dayTileAverageBar
@@ -145,20 +136,15 @@ BaseTodayTile {
 		color: fixedDayCost ? dimmableColors.dayTileAverageBar : dimmableColors.dayTileUsageBar
 		mouseEnabled: false
 	}
+	
+	Timer {
+        id: openTimer   //when opening screen
+        interval: 10000
+		repeat: false
+        running: true
+        triggeredOnStart: true
+        onTriggered: updateTileGraphic()
+    }
 
-	Image {
-		id: mask
-		source: maskFile ? "image://" + (dimState ? "scaled" : "colorized/" + bgColor.toString()) + "/apps/graph/drawables/" + maskFile : ""
-		anchors.centerIn: parent
-		visible: source ? true : false
-		property string maskFile
 
-		states: [
-			State {
-				name: "easter"
-				when: DateTracker.isEaster
-				PropertyChanges { target: mask; maskFile: "tile-mask-easter.svg" }
-			}
-		]
-	}
 }

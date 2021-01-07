@@ -35,13 +35,13 @@ App {
 	property url	solarGenerationTodayTileUrl : "SolarGenerationTodayTile.qml"
 	
 	property url 	solarRebootPopupUrl: "SolarRebootPopup.qml"
-	property 	Popup solarRebootPopup
-	property variant agreementDetails: ({})
+	property 		Popup solarRebootPopup
 
 
 	property string currentPower : "0"
-	property int todayValue : 0
-	property int yesterdayTotal : 0
+	property int 	todayValue : 0
+	property int 	dayAvgValue : 1000
+	property int 	yesterdayTotal : 0
 
 	property string currentPowerProd : "0"
 	property string currentUsage : "0"
@@ -66,13 +66,13 @@ App {
 	property int 	mins
 	property int	maxRollingY
 	
-	property date now
-	property date oneHoursEarlier
-	property date twoHoursEarlier
+	property date 	now
+	property date 	oneHoursEarlier
+	property date 	twoHoursEarlier
 	
-	property bool enableSleep : false
-	property bool debugOutput : false	// Show console messages. Turn on in settings file !
-	property bool enablePolling : true
+	property bool 	enableSleep : false
+	property bool 	debugOutput : false	// Show console messages. Turn on in settings file !
+	property bool 	enablePolling : true
 	
 	property string configMsgUuid : ""
 	property string popupString : "SolarPanel instellen en herstarten als nodig" + "..."
@@ -83,6 +83,8 @@ App {
 	
 	property variant fiveminuteValuesProd: []
 	property variant rollingfiveminuteValuesProd:[]
+	
+	property variant lastFiveDays: []
 	
 	property string selectedInverter: ""
 	
@@ -122,6 +124,7 @@ App {
 	FileIO {id: solarPanel_fiveminuteValuesProd;	source: "file:///mnt/data/tsc/appData/solarPanel_fiveminuteValuesProd.txt"}
 	FileIO {id: solarPanel_totalValue;	source: "file:///mnt/data/tsc/appData/solarPanel_totalValue.txt"}
 	FileIO {id: solarPanel_lastWrite;	source: "file:///mnt/data/tsc/appData/solarPanel_lastWrite.txt"}
+	FileIO {id: solarPanel_lastFiveDays;	source: "file:///mnt/data/tsc/appData/solarPanel_lastFiveDays.txt"}
 
 
 		
@@ -151,7 +154,11 @@ App {
 		try {var fiveminuteValuesStringProd = solarPanel_fiveminuteValuesProd.read() ; if (fiveminuteValuesStringProd.length >2 ){ fiveminuteValuesProd = fiveminuteValuesStringProd.split(',') }} catch(e) { }
 		try {var totalValueString = solarPanel_totalValue.read(); if (totalValueString.length > 0 ){oldTotalValue = parseInt(totalValueString)}} catch(e) {}
 		try {lastWriteDate = (solarPanel_lastWrite.read()).toString().trim() } catch(e) {}
-	
+		try {var lastFiveDaysString = solarPanel_lastFiveDays.read() ; if (lastFiveDaysString.length >2 ){lastFiveDays = lastFiveDaysString.split(',') }} catch(e) { }
+		
+		var totalForAvg = 0
+		for (var i in lastFiveDays){totalForAvg += lastFiveDays[i]}
+		if((totalForAvg>0) && (lastFiveDays.length >0)) {dayAvgValue = parseInt(totalForAvg/lastFiveDays.length)}
 		
 		if (debugOutput) console.log("*********SolarPanel trying to resolve old values")
 		if (debugOutput) console.log("*********SolarPanel starting to load lastwrite timestamp file: "  + lastWriteDate)
@@ -159,18 +166,17 @@ App {
 
 		var todaydate = new Date()
 		var todayFDate = (todaydate.getDate() + "-" + parseInt(Qt.formatDateTime(todaydate,"MM"))).toString().trim()
-		var yesterdayDate =  Qt.formatDate(new Date(todaydate.getFullYear(), todaydate.getMonth(), todaydate.getDate()-1), "yyMMdd")
+		var yesterdayDate =  Qt.formatDate(new Date(todaydate.getFullYear(), todaydate.getMonth(), todaydate.getDate()-1), "dd-MM-yyyy")
 
-		
 		//get last totalValue4
 		var http= new XMLHttpRequest()
-		var url = "http://192.168.10.233/hcb_rrd?action=getRrdData.csv&loggerName=elec_solar_quantity&rra=10yrdays&from=03-01-2021" + Qt.formatDate( yesterdayDate, "dd-MM-yyyy")
+		var url = "http://localhost/hcb_rrd?action=getRrdData.csv&loggerName=elec_solar_quantity&rra=10yrdays&from=" + yesterdayDate
 		http.onreadystatechange = function() { // Call a function when the state changes.
 			if (http.readyState === 4) {
 				if (http.status === 200) {
 					var firstline = http.responseText.split("\n")[0]
 					yesterdayTotal = parseInt(firstline.split(",")[1])
-					console.log("*********SolarPanel yesterdayTotal: " + yesterdayTotal)
+					if (debugOutput) console.log("*********SolarPanel yesterdayTotal: " + yesterdayTotal)
 				} else {
 					console.log("*********SolarPanel error: " + http.status)
 				}
@@ -178,6 +184,8 @@ App {
 		}
 		http.open("GET", url, true)
         http.send()
+		
+		if (yesterdayTotal == 0){oldTotalValue = oldTotalValue}
 		
 		if (lastWriteDate.length > 2 ){			
 			if (debugOutput) console.log("*********SolarPanel todayFDate:" + todayFDate)
@@ -436,6 +444,24 @@ App {
 		}
 		fiveminuteValuesProd = newArray2Prod
 		
+		
+		var lastFiveDaysString = lastFiveDays[1]
+		for (var g = 1; g < 4; g++) {
+			 lastFiveDaysString += "," + lastFiveDays[g+1]
+		}
+		solarPanel_lastFiveDays.write(lastFiveDaysString)
+		
+		var newArray3 = []
+		for (var g  in lastFiveDays) {
+			if (g<5){newArray3.push(lastFiveDays[g+1])}
+		}
+		newArray3.push(todayValue)
+		lastFiveDays = newArray3
+		
+		var totalForAvg = 0
+		for (var i in lastFiveDays){totalForAvg += lastFiveDays[i]}
+		if((totalForAvg>0) && (lastFiveDays.length >0)) {dayAvgValue = parseInt(totalForAvg/lastFiveDays.length)}
+
 		yesterdayTotal = totalValue
 		oldTotalValue=totalValue
 		solarPanel_fiveminuteValuesProd.write(zeroStringProd)
@@ -521,7 +547,6 @@ App {
 		getData()
 	}
 
-
 	function restartToon() {
 		var restartToonMessage = bxtFactory.newBxtMessage(BxtMessage.ACTION_INVOKE, configMsgUuid, "specific1", "RequestReboot");
 		bxtClient.sendMsg(restartToonMessage);
@@ -534,6 +559,4 @@ App {
 			configMsgUuid = deviceUuid
 		}
 	}
-	
-
 }
