@@ -140,7 +140,7 @@ Tile {
 	Timer {
         id: openTimer   //when opening screen
         interval: 10000
-		repeat: false
+	repeat: true
         running: true
         triggeredOnStart: true
         onTriggered: updateTileGraphic()
