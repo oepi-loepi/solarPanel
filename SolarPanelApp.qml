@@ -184,9 +184,13 @@ App {
 		}
 		http.open("GET", url, true)
         http.send()
-		
-		if (yesterdayTotal == 0){oldTotalValue = oldTotalValue}
-		
+	
+		if (typeof yesterdayTotal == 'undefined' || typeof yesterdayTotal == 'null' || yesterdayTotal == null || yesterdayTotal == 0 ){	
+			oldTotalValue = oldTotalValue
+		}else{
+			oldTotalValue = yesterdayTotal
+		}
+
 		if (lastWriteDate.length > 2 ){			
 			if (debugOutput) console.log("*********SolarPanel todayFDate:" + todayFDate)
 			if (debugOutput) console.log("*********SolarPanel lastWriteDate:" + lastWriteDate)
