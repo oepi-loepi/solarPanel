@@ -778,29 +778,46 @@ Screen {
 					//console.log("*********SolarPanel configfileString : " + configfileString)
 					var fl = configfileString.length
 					var n100 = configfileString.indexOf('<name>elec_solar_quantity</name>')
+					var n101 = configfileString.indexOf('</rrdLogger>',n100)	
+					var n150 = (configfileString.substring(n100, n101)).indexOf('<futureBins>')
 					
-					var n200 = configfileString.indexOf('<futureBins>',n100)
-					var n201 = configfileString.indexOf('</futureBins>',n200)
-					console.log("*********SolarPanel <futureBins> : " + configfileString.substring(n200, n201))
-					
-					
-					if (configfileString.substring(n200, n201) == "<futureBins>0"){
+					if (n150<0){ // futurebins is not in the rrd solar
+					    console.log("*********SolarPanel writing setting futureBins to 1 ")
 						rewrite_hcb_rrd = true
-						console.log("*********SolarPanel setting futureBins to 1 ")
-						var newconfigfileString = configfileString.substring(0, n200) + "<futureBins>1" + configfileString.substring(n201, configfileString.length)
-						configfileString = newconfigfileString
-					}
-					var n203 = configfileString.indexOf('<futureBins>',n201)
-					var n204 = configfileString.indexOf('</futureBins>',n203)
-					console.log("*********SolarPanel <futureBins>: " + configfileString.substring(n203, n204))
+						var n151 = configfileString.indexOf('<name>5yrhours</name>',n100)
+						var n152  = n151 + ('<name>5yrhours</name>').length
+						var newconfigfileString = configfileString.substring(0, n151) + "<futureBins>1</futureBins><name>5yrhours</name>" + configfileString.substring(n152, configfileString.length)
 					
-					if (configfileString.substring(n203, n204) == "<futureBins>0"){
-						rewrite_hcb_rrd = true
-						console.log("*********SolarPanel setting futureBins to 1 ")
-						var newconfigfileString = configfileString.substring(0, n203) + "<futureBins>1" + configfileString.substring(n204, configfileString.length)
-						configfileString = newconfigfileString
+						
+						var n161 = newconfigfileString.indexOf('<name>10yrdays</name>',n100)
+						var n162  = n161 + ('<name>10yrdays</name>').length
+						var newconfigfileString2 = newconfigfileString.substring(0, n161) + "<futureBins>1</futureBins><name>10yrdays</name>" + newconfigfileString.substring(n162, newconfigfileString.length)
+						configfileString = newconfigfileString2
 					}
-	
+
+					else {
+						var n200 = configfileString.indexOf('<futureBins>',n100)
+						var n201 = configfileString.indexOf('</futureBins>',n200)
+						console.log("*********SolarPanel <futureBins> : " + configfileString.substring(n200, n201))
+						
+						if (configfileString.substring(n200, n201) == "<futureBins>0"){
+							rewrite_hcb_rrd = true
+							console.log("*********SolarPanel setting futureBins to 1 ")
+							var newconfigfileString = configfileString.substring(0, n200) + "<futureBins>1" + configfileString.substring(n201, configfileString.length)
+							configfileString = newconfigfileString
+						}
+						var n203 = configfileString.indexOf('<futureBins>',n201)
+						var n204 = configfileString.indexOf('</futureBins>',n203)
+						console.log("*********SolarPanel <futureBins>: " + configfileString.substring(n203, n204))
+						
+						if (configfileString.substring(n203, n204) == "<futureBins>0"){
+							rewrite_hcb_rrd = true
+							console.log("*********SolarPanel setting futureBins to 1 ")
+							var newconfigfileString = configfileString.substring(0, n203) + "<futureBins>1" + configfileString.substring(n204, configfileString.length)
+							configfileString = newconfigfileString
+						}
+					}
+					
 					if (rewrite_hcb_rrd){
 						needReboot = true
 						//console.log("*********SolarPanel configfileString : " + configfileString)
@@ -927,7 +944,7 @@ Screen {
 					console.log("*********SolarPanel restartingToon")
 					app.popupString = "Rebooten van Toon" + "..." 
 					app.solarRebootPopup.hide()
-					app.restartToon()
+					//app.restartToon()
 				}
 				break;
 			}
