@@ -18,12 +18,18 @@ App {
 	property url 	tileUrl : "SolarPanelTile.qml"
 	property url 	tileUrl2 : "SolarPanelTile2.qml"
 	property url 	tileUrl3 : "SolarPanelTile3.qml"
-	property url 	thumbnailIcon1: "qrc:/tsc/HomeSunny"
-	property url 	thumbnailIcon2: "qrc:/tsc/HomeSunny"
-	property url 	thumbnailIcon3: "qrc:/tsc/HomeSunny"
-	property url 	thumbnailIcon4: "qrc:/apps/graph/drawables/ChooseTileSolarNow.svg"
-	property url 	thumbnailIcon5: "qrc:/apps/graph/drawables/ChooseHourSolarTile.svg"
-	property url 	thumbnailIcon6: "qrc:/apps/graph/drawables/ChooseTileKWh"
+	property url 	thumbnailIcon1: "qrc:/tsc/solarPanel_graph1.png"
+	property url 	thumbnailIcon2: "qrc:/tsc/solarPanel_txt.png"
+	property url 	thumbnailIcon3: "qrc:/tsc/solarPanel_rolling.png"
+	property url 	thumbnailIcon4: "qrc:/tsc/solarPanel_now.png"
+	property url 	thumbnailIcon5: "qrc:/tsc/solarPanel_graph2.png"
+	property url 	thumbnailIcon6: "qrc:/tsc/solarPanel_kwh.png"
+
+	
+	//property url 	thumbnailIcon3: "qrc:/tsc/HomeSunny"
+	//property url 	thumbnailIcon4: "qrc:/apps/graph/drawables/ChooseTileSolarNow.svg"
+	//property url 	thumbnailIcon5: "qrc:/apps/graph/drawables/ChooseHourSolarTile.svg"
+	//property url 	thumbnailIcon6: "qrc:/apps/graph/drawables/ChooseTileKWh"
 
 	property		SolarPanelScreen solarPanelScreen
 	property url 	solarPanelScreenUrl : "SolarPanelScreen.qml"
