@@ -1,6 +1,8 @@
 to do:
 En het interval instelbaar maken
 
+1.1.7
+- setting futurebins to 1
 
 1.1.6
 - fixed daily productio value

@@ -1,6 +1,6 @@
-/////////             <version>1.0.4</version>
+/////////             <version>1.0.7</version>
 /////////                     GROW1                        /////////////
-/////////  Plugin to extract Graowatt Solar data for Toon  ///////////////
+/////////  Plugin to extract Growatt Solar data for Toon  ///////////////
 /////////                   By Oepi-Loepi                  ///////////////
 
 	function getSolarData(passWord,userName,apiKey,siteid,urlString,totalValue){
@@ -20,7 +20,7 @@
                                  getGrowattStep2();
                             } else {
                                 if (debugOutput) console.log("*********SolarPanel error: " + http.status)
-								parseReturnData(currentPower,todayValue,monthValue,yearValue,totalValue,0,0,0,0,0,0, http.status,"error")
+				parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
                             }
                         }
                     }
@@ -41,11 +41,12 @@
                             var JsonString = http.responseText
                             var JsonObject= JSON.parse(JsonString)
                             currentPower = parseInt(JsonObject.powerValue)
+			    var today2 = Math.floor((JsonObject.todayValue)*1000)
                             totalValue= Math.floor((JsonObject.totalValue)*1000)
-							parseReturnData(currentPower,totalValue,0,0,0,0,0,http.status,"succes")
+			    parseReturnData(currentPower,totalValue,today2,0,0,0,0,http.status,"succes")
 				} else {
 					if (debugOutput) console.log("*********SolarPanel error: " + http.status)
-					parseReturnData(currentPower,totalValue,0,0,0,0,0, http.status,"error")
+					parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
 				}
 			}
 		}

@@ -7,8 +7,7 @@ BarTodayTile {
 	upperRectColor: dimmableColors.graphSolarSelected
 	
 	onClicked: {
-		//stage.openFullscreen(app.solarPanelScreenUrl) ; 
-		updateTileGraphic()
+		stage.openFullscreen(app.solarPanelScreenUrl)
 	}
 	dayUsage : app.todayValue
 	valueText : parseFloat(app.todayValue/1000).toFixed(1) + " kW"

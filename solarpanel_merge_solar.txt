@@ -22,14 +22,14 @@
     <visibility>0</visibility><deviceUuid>11111111-1111-1111-1111-11111111111d</deviceUuid><deviceVar>CurrentElectricityQuantity</deviceVar><deviceSvc>ElectricityQuantityMeter</deviceSvc><sampleType>integer</sampleType><rra>
     <binLength>3600</binLength>
     <bins>43830</bins>
-    <futureBins>0</futureBins>
+    <futureBins>1</futureBins>
     <consolidator>last</consolidator>
     <name>5yrhours</name>
     <minSamplesPerBin>1</minSamplesPerBin>
     <saveInterval>1</saveInterval></rra><rra>
     <binLength>86400</binLength>
     <bins>3653</bins>
-    <futureBins>0</futureBins>
+    <futureBins>1</futureBins>
     <consolidator>last</consolidator>
     <name>10yrdays</name>
     <minSamplesPerBin>1</minSamplesPerBin>
