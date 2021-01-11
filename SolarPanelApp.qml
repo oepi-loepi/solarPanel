@@ -194,8 +194,10 @@ App {
 	
 		if (typeof yesterdayTotal == 'undefined' || typeof yesterdayTotal == 'null' || yesterdayTotal == null || yesterdayTotal == 0 ){	
 			oldTotalValue = oldTotalValue
+			totalValue = oldTotalValue
 		}else{
 			oldTotalValue = yesterdayTotal
+			totalValue = oldTotalValue
 		}
 
 		if (lastWriteDate.length > 2 ){			
@@ -290,7 +292,7 @@ App {
 ///////////////////////////////////////////////////////////////// GET DATA //////////////////////////////////////////////////////////////////////////////	
 
 	function getData(){
-		Solar.getSolarData(passWord,userName,apiKey,siteID,urlString, parseInt(oldTotalValue))
+		Solar.getSolarData(passWord,userName,apiKey,siteID,urlString, parseInt(totalValue))
 		if (debugOutput) console.log("*********SolarPanel send request to Plugin")
     }
 
