@@ -13,7 +13,10 @@ Screen {
 	property variant dataStringArray: []
 	property variant inputDataType: []
 	
+	property bool isDemoMode : false
+	
 	property url inverterUrl : "https://raw.githubusercontent.com/ToonSoftwareCollective/solarpanel-plugins/main/inverters.json"
+	property url inverterTestUrl : "https://raw.githubusercontent.com/ToonSoftwareCollective/solarpanel-plugins/main/invertersTest.json"
 	property url pluginUrl : "https://raw.githubusercontent.com/ToonSoftwareCollective/solarpanel-plugins/main/"
 
 	
@@ -135,7 +138,11 @@ Screen {
 					}
 				}
 			}
-			http.open("GET",inverterUrl, true)
+			if (isDemoMode){
+				http.open("GET",inverterTestUrl, true)
+			}else{
+				http.open("GET",inverterUrl, true)
+			}
 			http.send()
 		}	
 	}
@@ -973,6 +980,35 @@ Screen {
 			configChangeStep++
 		}
     }
+	
+	MouseArea {
+		height : 80
+		width : 80
+		anchors {
+			bottom: parent.bottom
+			right: parent.right
+			rightMargin: 0
+			bottomMargin:0
+		}
+		onClicked: {
+			isDemoMode = !isDemoMode
+			console.log("clicked demo mode")
+		}
+	}
+
+	Text{
+		id:demoMode
+		font.pixelSize:  isNxt ? 20 : 16
+		font.family: qfont.regular.name
+		color:  "red" 
+		text: isDemoMode? "Test" : ""
+		anchors {
+			bottom: parent.bottom
+			right: parent.right
+			rightMargin: 10
+			bottomMargin:10
+		}    		
+	}
 	
 }
 

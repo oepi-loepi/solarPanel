@@ -2,7 +2,7 @@ import QtQuick 2.1
 
 HourTile {
 	id: root
-	hourTileTitle: qsTr("Zonnepanelen in uren")
+	hourTileTitle: qsTr("Solar 2 uur")
 	values: app.rollingfiveminuteValues
 	dataType: "electricity"
 	maxValue: (app.maxRollingY)
