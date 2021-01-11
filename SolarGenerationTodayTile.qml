@@ -2,7 +2,7 @@ import QtQuick 2.1
 
 BarTodayTile {
 	id: powerTodayTile
-	titleText: qsTr("Productie vandaag")
+	titleText: qsTr("Solar Vandaag")
 	lowerRectColor: dimmableColors.graphSolar
 	upperRectColor: dimmableColors.graphSolarSelected
 	

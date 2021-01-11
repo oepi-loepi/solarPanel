@@ -52,7 +52,7 @@ Tile {
 	Text {
 		id: dayPower
 
-		text: "Vandaag: " + parseFloat(app.todayValue/1000).toFixed(1) + " kW"
+		text: "Vandaag: " + parseFloat(app.todayValue/1000).toFixed(1) + " kWh"
 		color: !dimState? "black" : "white"
 		anchors {
 			top: curPower.bottom

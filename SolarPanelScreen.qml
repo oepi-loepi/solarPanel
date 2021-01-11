@@ -29,8 +29,8 @@ Screen {
 	
 	Text{
 		id: panelText
-		text: "Omvormer: " + app.selectedInverter + "     Huidig: " + app.currentPower + " Watt" +  "     Totaal: " +  parseInt(app.totalValue/1000) + " kWh"
-		font.pixelSize: isNxt? 25:20
+		text: "Omvormer: " + app.selectedInverter + "   Huidig: " + app.currentPower + " Watt   Vandaag: " +  parseFloat(app.todayValue/1000).toFixed(1) + " kWh   Totaal: " +  parseInt(app.totalValue/1000) + " kWh"
+		font.pixelSize: isNxt? 20:16
 		font.family:  qfont.bold.name
 		anchors {
             horizontalCenter: parent.horizontalCenter
@@ -63,7 +63,8 @@ Screen {
 		showTitle: true
 		backgroundcolor : "lightgrey"
 		axisColor : "black"
-		barColor : "blue"
+		//barColor : "blue"
+		barColor :dimmableColors.graphSolar
 		lineXaxisvisible : true
 		textXaxisColor : "red"
 		stepXtext: 3
@@ -109,7 +110,7 @@ Screen {
             left : rect1.right
             leftMargin : isNxt? 10:8
         }
-		color : "yellow"
+		color : "black"
 	}
 	
 	
@@ -122,12 +123,13 @@ Screen {
         }
         height:  isNxt? 20: 16
         width: isNxt?  40 : 32
-		color : "blue"
+		//color : "blue"
+		color :dimmableColors.graphSolar
 	}
 	
 	Text{
 		id: txt2
-		text: "Zonnepanelen"
+		text: "Solar"
 		font.pixelSize: isNxt? 15:12
 		font.family: qfont.regular.name
 		anchors {
@@ -135,7 +137,7 @@ Screen {
             left : rect2.right
             leftMargin : isNxt? 10:8
         }
-		color : "blue"
+		color : "black"
 	}
 	
 }

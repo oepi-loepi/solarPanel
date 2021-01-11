@@ -10,7 +10,7 @@ Tile {
 
     Text {
 		id: solarText
-		text: "SolarPanel: " + app.selectedInverter
+		text: "Vandaag: " + parseFloat(app.todayValue/1000).toFixed(1) + " kWh"
 		color: !dimState? "black" : "white"
 		anchors {
 			top: parent.top
@@ -52,7 +52,8 @@ Tile {
 		showTitle: false
 		backgroundcolor : "transparent"
 		axisColor :  !dimState? "grey" : "lightgrey"
-		barColor :!dimState? "black" : "white"
+		//barColor :!dimState? "black" : "white"
+		barColor :dimmableColors.graphSolar
 		lineXaxisvisible : true
 		textXaxisColor : !dimState? "grey" : "lightgrey"
 		stepXtext: 3
