@@ -118,6 +118,9 @@ Screen {
 				if (http.readyState === 4){
 					if (http.status === 200 || http.status === 300  || http.status === 302) {
 						model.clear()
+						invertersNameArray= []
+						inputDataType =[]
+						filenameArray = []						
 						var JsonString = http.responseText
 						if (debugOutput) console.log("responsetext: " +  http.responseText)
 						var JsonObject= JSON.parse(JsonString)
@@ -139,6 +142,7 @@ Screen {
 				}
 			}
 			if (isDemoMode){
+				selectedInverter=""
 				http.open("GET",inverterTestUrl, true)
 			}else{
 				http.open("GET",inverterUrl, true)
