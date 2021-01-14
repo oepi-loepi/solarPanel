@@ -104,7 +104,7 @@ Tile {
 			pixelSize: qfont.tileText
 		}
 		color: dimmableColors.tileTextColor
-		text: (isNaN(valueProduced)||(app.pluginWarning.length >5)) ? "-" : qsTr("%1 Watt").arg(valueProduced):
+		text: (isNaN(valueProduced)||(app.pluginWarning.length >5)) ? "-" : qsTr("%1 Watt").arg(valueProduced)
 	}
 
 	Timer {
