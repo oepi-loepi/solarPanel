@@ -1,3 +1,6 @@
+1.1.10
+- small bug fixes in tiles
+
 1.1.9
 - changed day and hour totals handling
 - improved daily avarage calculation
