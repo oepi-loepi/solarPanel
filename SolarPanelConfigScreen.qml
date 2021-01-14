@@ -51,6 +51,7 @@ Screen {
 	property bool needRestart : false
 	property string oldconfigfileString
 	property string oldConfigScsyncFileString
+	property string onlinePluginFileName : ""
 	
 	property bool updatepossible : false
 	property string oldversionTotal
@@ -59,6 +60,8 @@ Screen {
 	property bool showUpdate : false
 	property bool updated : false
 	property bool updateSucces : false
+	
+	property bool wrongPlugin: false
 	
 	property bool debugOutput : app.debugOutput						// Show console messages. Turn on in settings file !
 	
@@ -205,7 +208,7 @@ Screen {
 		
 		//get filename of installed inverter
 		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
-			if (invertersNameArray[x2].toLowerCase()==app.selectedInverter.toLowerCase()){var onlinePluginFileName = filenameArray[x2]}
+			if (invertersNameArray[x2].toLowerCase()==app.selectedInverter.toLowerCase()){onlinePluginFileName = filenameArray[x2]}
 		}
 		
 		var onlineversionArray = ["0","0","0"]
@@ -638,7 +641,6 @@ Screen {
 	function updatePlugin(){
 		app.popupString = "Plugin ophalen voor " + selectedInverter + "..."
 		app.solarRebootPopup.show()
-		var onlinePluginFileName
 		//get filename of installed inverter
 		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
 			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){onlinePluginFileName = filenameArray[x2]}
@@ -678,18 +680,50 @@ Screen {
 	
 	function modRRDConfig(configChangeStep){
 		var configfileString
+		
 		if (debugOutput) console.log("*********SolarPanel configChangeStep = " + configChangeStep)
 		updateSucces = true
 		switch (configChangeStep) {
 		
 			case 0: {
+			
 				console.log("*********SolarPanel show popup")
 				app.popupString = "SolarPanel instellen en herstarten als nodig" + "..."
 				app.solarRebootPopup.show()
+				
+				//prepare steps
+				for(var x2 = 0;x2 < invertersNameArray.length;x2++){
+					console.log("*********SolarPanel selectedInverter.toLowerCase() : " + selectedInverter.toLowerCase())
+					console.log("*********SolarPanel invertersNameArray[x2].toLowerCase() : " + invertersNameArray[x2].toLowerCase())
+					if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){
+						onlinePluginFileName = filenameArray[x2]
+						if (debugOutput) console.log("*********SolarPanel Match on : " + invertersNameArray[x2].toLowerCase())
+						if (debugOutput) console.log("*********SolarPanel Match on : " + filenameArray[x2])
+						if (debugOutput) console.log("*********SolarPanel onlinePluginFileName: " + onlinePluginFileName)
+					}
+				}
+				
+				//get the name off the currently installed inverter
+				var pluginFileString  = ""
+				try {pluginFileString = pluginFile.read() } catch(e) {}
+				if (debugOutput) console.log("*********SolarPanel pluginFile.read() : " + pluginFile.read())
+				if (debugOutput) console.log("*********SolarPanel onlinePluginFileName : " + onlinePluginFileName)
+				if (pluginFileString.indexOf(onlinePluginFileName)<0 || selectedInverter==""  || onlinePluginFileName =="" ){//wrong plugin
+					wrongPlugin = true
+				}else{
+					wrongPlugin = false
+				}
+				
+				if (app.pluginWarning.length > 2){needRestart = true}
+				
+				break;
+			}
+		
+			case 1: {
 				break;
 			}
 			
-			case 1: {
+			case 2: {
 				console.log("*********SolarPanel check Solar features in hcb_scsync ")
 				try {
 					var rewrite_hcb_scsync = false
@@ -739,7 +773,7 @@ Screen {
 			}
 			
 			
-			case 2: {
+			case 3: {
 				try {
 					configfileString =  hcb_rrd_Configfile.read()
 					if (configfileString.indexOf("<name>elec_produ_flow</name>") >-1) {
@@ -759,7 +793,7 @@ Screen {
 				break;
 			}
 			
-			case 3: {
+			case 4: {
 				try {
 					configfileString =  hcb_rrd_Configfile.read()
 					if ((configfileString.indexOf("<name>elec_solar_quantity</name>") > -1 )  ||  (configfileString.indexOf("<name>elec_solar_quantity</name>") >-1)) {
@@ -781,7 +815,7 @@ Screen {
 			}
 			
 			
-			case 4: {
+			case 5: {
 				var rewrite_hcb_rrd = false
 				try {
 					configfileString =  hcb_rrd_Configfile.read()
@@ -844,14 +878,8 @@ Screen {
 			}
 
 			
-			case 5: {
-				if (app.selectedInverter != selectedInverter){
-					var onlinePluginFileName
-					//get filename of installed inverter
-					for(var x2 = 0;x2 < invertersNameArray.length;x2++){
-						if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){onlinePluginFileName = filenameArray[x2]}
-						break;
-					}
+			case 6: {
+				if (app.selectedInverter != selectedInverter  || wrongPlugin){
 					needRestart = true
 					console.log("*********SolarPanel downloading new inverter plugin")
 					console.log("*********SolarPanel downloading new inverter plugin : " + pluginUrl + onlinePluginFileName+ ".plugin.txt")
@@ -885,8 +913,8 @@ Screen {
 				break;
 			}
 			
-			case 6: {
-				if (updated){
+			case 7: {
+				if (updated || wrongPlugin){
 					needRestart = true
 					app.popupString = "Plugin was geupdate voor " + selectedInverter + "..." 
 				}
@@ -896,7 +924,7 @@ Screen {
 				break;
 			}
 			
-			case 7: {
+			case 8: {
 				console.log("*********SolarPanel save app setting")
 				app.selectedInverter = selectedInverter
 				app.passWord = tempPassWord
@@ -904,12 +932,13 @@ Screen {
 				app.siteID = tempSiteID
 				app.apiKey = tempApiKey
 				app.urlString = tempURL
+				app.onlinePluginFileName = onlinePluginFileName
 				app.saveSettings()
 				app.popupString = "Instellingen opgeslagen" + "..." 
 				break;
 			}
 				
-			case 8: {
+			case 9: {
 				if (!needRestart && !needReboot) {
 					console.log("*********SolarPanel no changes so no need to restart")
 					app.popupString = "Restart niet nodig" + "..." 
@@ -921,7 +950,7 @@ Screen {
 				}
 				break;
 			}
-			case 9: {
+			case 10: {
 				if ((needRestart || needReboot) && updateSucces) {
 					console.log("*********SolarPanel creating backup of config_rdd ")
 					hcb_rrd_Configfile_bak.write(oldconfigfileString)
@@ -929,7 +958,7 @@ Screen {
 				}
 				break;
 			}
-			case 10: {
+			case 11: {
 				if  ((needRestart || needReboot) && updateSucces) {
 					console.log("*********SolarPanel creating backup of config scsync ")
 					hcb_scsync_Configfile_bak.write(oldConfigScsyncFileString)
@@ -938,7 +967,7 @@ Screen {
 				break;
 			}
 			
-			case 11: {
+			case 12: {
 				if (needRestart && !needReboot && updateSucces ) {
 					console.log("*********SolarPanel restart")
 					console.log("*********SolarPanel restartingToon")
@@ -949,7 +978,7 @@ Screen {
 				break;
 			}
 			
-			case 12: {
+			case 13: {
 				if (needReboot) {
 					console.log("*********SolarPanel reboot")
 					console.log("*********SolarPanel restartingToon")
@@ -975,7 +1004,7 @@ Screen {
 
 	Timer {
 		id: stepTimer   //interval to nicely save all and reboot
-		interval: 2500
+		interval: 2200
 		repeat:true
 		running: stepRunning 
 		triggeredOnStart: true

@@ -29,7 +29,7 @@ Screen {
 	
 	Text{
 		id: panelText
-		text: "Omvormer: " + app.selectedInverter + "   Huidig: " + app.currentPower + " Watt   Vandaag: " +  parseFloat(app.todayValue/1000).toFixed(1) + " kWh   Totaal: " +  parseInt(app.totalValue/1000) + " kWh"
+		text:  "Omvormer: " + app.selectedInverter + "   Huidig: " + app.currentPower + " Watt   Vandaag: " +  parseFloat(app.todayValue/1000).toFixed(1) + " kWh   Totaal: " +  parseInt(app.totalValue/1000) + " kWh"
 		font.pixelSize: isNxt? 20:16
 		font.family:  qfont.bold.name
 		anchors {
@@ -37,7 +37,36 @@ Screen {
 			top: dateText.bottom
 			topMargin: isNxt? 10:8
         }
-		color : "grey"
+		color : (app.pluginWarning.length <1)? "grey" : "red"
+		visible : app.pluginWarning.length <1
+	}
+	
+	Text{
+		id: panelWarningText1
+		text: app.pluginWarning
+		font.pixelSize: app.pluginWarningisNxt? 40:32
+		font.family:  qfont.bold.name
+		anchors {
+            horizontalCenter: parent.horizontalCenter
+			top: dateText.bottom
+			topMargin: isNxt? 10:8
+        }
+		color : "red"
+		visible : !(app.pluginWarning.length <1)
+	}
+	
+	Text{
+		id: panelWarningText2
+		text: "Ga rechtsboven naar Instellingen"
+		font.pixelSize: isNxt? 40:32
+		font.family:  qfont.bold.name
+		anchors {
+            horizontalCenter: parent.horizontalCenter
+			top: panelWarningText1.bottom
+			topMargin: isNxt? 10:8
+        }
+		color : "red"
+		visible : panelWarningText1.visible
 	}
 	
 
@@ -83,8 +112,10 @@ Screen {
 		specialBarColor2 :"green"
 		specialBarIndex2  : 0
 		showSpecialBar2 : false
-		barColor2 : "yellow"
+		barColor2 : "green"
 		dataValues2: app.fiveminuteValuesProd
+		visible: (app.pluginWarning.length <1)
+
 	}
 	
 	Rectangle{
@@ -97,7 +128,8 @@ Screen {
         }
         height:  isNxt? 20: 16
         width: isNxt?  40 : 32
-		color : "yellow"
+		color : "green"
+		visible: (app.pluginWarning.length <1)
 	}
 	
 	Text{
@@ -111,6 +143,7 @@ Screen {
             leftMargin : isNxt? 10:8
         }
 		color : "black"
+		visible: (app.pluginWarning.length <1)
 	}
 	
 	
@@ -125,6 +158,7 @@ Screen {
         width: isNxt?  40 : 32
 		//color : "blue"
 		color :dimmableColors.graphSolar
+		visible: (app.pluginWarning.length <1)
 	}
 	
 	Text{
@@ -138,6 +172,7 @@ Screen {
             leftMargin : isNxt? 10:8
         }
 		color : "black"
+		visible: (app.pluginWarning.length <1)
 	}
 	
 }
