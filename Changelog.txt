@@ -1,5 +1,11 @@
-to do:
-En het interval instelbaar maken
+1.1.9
+- changed day and hour totals handling
+- improved daily avarage calculation
+- check on correct inverter at startup
+- improved comments
+- made the production graph green
+- new setup for plugin handling
+
 
 1.1.8
 - minor changes

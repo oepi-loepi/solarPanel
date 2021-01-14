@@ -48,22 +48,22 @@ App {
 	property int 	todayValue : 0
 	property int 	dayAvgValue : 1000
 	property int 	yesterdayTotal : 0
+	property int 	lastHourValue : 0
 
 	property string currentPowerProd : "0"
 	property string currentUsage : "0"
-    property string dtime : "0001"
+    property string dtime : "0"
 	
 	property string succesTime: ""
 
     property string totalValue : "0"
-	property string oldTotalValue : "0"
 
 	property int 	maxWattage : 300
 	property int 	tempConfigListIndex
 	property string rollingMinX :"05:00"
 	property string rollingCenterX : "06:00"
     property string rollingMaxX :"07:00"
-	property int 	minsfromsevenIndex
+	property int 	minsfromfiveIndex
 	property int 	nextday
 	property date 	dateTimeNow
 	property int 	dday
@@ -82,6 +82,7 @@ App {
 	
 	property string configMsgUuid : ""
 	property string popupString : "SolarPanel instellen en herstarten als nodig" + "..."
+	property string pluginWarning : "Selecteer Inverter"
 
 	
 	property variant fiveminuteValues: []
@@ -93,6 +94,7 @@ App {
 	property variant lastFiveDays: []
 	
 	property string selectedInverter: ""
+	property string onlinePluginFileName:""
 	
 	property string passWord : ""
 	property string userName : ""
@@ -131,15 +133,22 @@ App {
 	FileIO {id: solarPanel_totalValue;	source: "file:///mnt/data/tsc/appData/solarPanel_totalValue.txt"}
 	FileIO {id: solarPanel_lastWrite;	source: "file:///mnt/data/tsc/appData/solarPanel_lastWrite.txt"}
 	FileIO {id: solarPanel_lastFiveDays;	source: "file:///mnt/data/tsc/appData/solarPanel_lastFiveDays.txt"}
-
+	FileIO {id: pluginFile;	source: "SolarObjectPlugin.js"}
 
 		
-	Component.onCompleted: { //clear array
+	Component.onCompleted: { 
+	
+		//clear graph arrays
 		for (var i = 0; i <= 216; i++){fiveminuteValues[i] = 0}  //moet 216 zijn (15 uur /dag 12 x per uur (elke 5 mins))
 		for (var i = 0; i <= 216; i++){fiveminuteValuesProd[i] = 0}  //moet 216 zijn (15 uur /dag 12 x per uur (elke 5 mins))
 		for (var i = 0; i <= 24; i++){rollingfiveminuteValues[i] = 0 }
 		for (var i = 0; i <= 24; i++){rollingfiveminuteValuesProd[i] = 0 }
+		for (var i = 0; i <= 5; i++){lastFiveDays[i] = 0 }
+		
+		currentPower = 0
+
 	
+		//get the user settings from the system file
 		try {
 			solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
 			selectedInverter = solarpanelSettingsJson['selectedInverter-v2']
@@ -153,29 +162,49 @@ App {
 			//if (solarpanelSettingsJson['DebugOn'] == "Yes") {debugOutput = true} else {debugOutput = false}
 		} catch(e) {
 		}
+		
+		//check if plugin matches the selectedinverter
+		//must be a seperate try because this parameter was added later
+		try {
+			solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
+			onlinePluginFileName = solarpanelSettingsJson['onlinePluginFileName']
+		} catch(e) {
+		}
+		
+		var pluginFileString = pluginFile.read()
+		console.log("*********SolarPanel pluginFile.read() : " + pluginFile.read())
+		console.log("*********SolarPanel onlinePluginFileName : " + onlinePluginFileName)
+		if (pluginFileString.indexOf(onlinePluginFileName)<0 || selectedInverter==""  || onlinePluginFileName =="" ){//wrong plugin
+			console.log("*********SolarPanel wrong plugin : ")
+			console.log("*********SolarPanel has wrong plugin when first started")
+			pluginWarning = "Selecteer Inverter"
+		}else{
+			pluginWarning = ""
+		}
 
-		var lastWriteDate = ""
-		
-		try {var fiveminuteValuesString = solarPanel_fiveminuteValues.read() ; if (fiveminuteValuesString.length >2 ){ fiveminuteValues = fiveminuteValuesString.split(',') }} catch(e) { }
-		try {var fiveminuteValuesStringProd = solarPanel_fiveminuteValuesProd.read() ; if (fiveminuteValuesStringProd.length >2 ){ fiveminuteValuesProd = fiveminuteValuesStringProd.split(',') }} catch(e) { }
-		try {var totalValueString = solarPanel_totalValue.read(); if (totalValueString.length > 0 ){oldTotalValue = parseInt(totalValueString)}} catch(e) {}
-		try {lastWriteDate = (solarPanel_lastWrite.read()).toString().trim() } catch(e) {}
-		try {var lastFiveDaysString = solarPanel_lastFiveDays.read() ; if (lastFiveDaysString.length >2 ){lastFiveDays = lastFiveDaysString.split(',') }} catch(e) { }
-		
-		var totalForAvg = 0
-		for (var i in lastFiveDays){totalForAvg += lastFiveDays[i]}
-		if((totalForAvg>0) && (lastFiveDays.length >0)) {dayAvgValue = parseInt(totalForAvg/lastFiveDays.length)}
-		
+
+		//get the last values from the data file
 		if (debugOutput) console.log("*********SolarPanel trying to resolve old values")
-		if (debugOutput) console.log("*********SolarPanel starting to load lastwrite timestamp file: "  + lastWriteDate)
-		currentPower = 0
+		
+		//calculate the average 5 day value for the daytile
+		try {var lastFiveDaysString = solarPanel_lastFiveDays.read() ; if (lastFiveDaysString.length >2 ){lastFiveDays = lastFiveDaysString.split(',') }} catch(e) { }
+		var totalForAvg = 0
+		var avgcounter = 0
+		for (var i in lastFiveDays){
+			if (!isNaN(lastFiveDays[i]) & (parseInt(lastFiveDays[i])>0)){
+					totalForAvg = totalForAvg + parseInt(lastFiveDays[i])
+					avgcounter ++
+				}
+			}
+		if((totalForAvg>0) && (avgcounter >3)) {dayAvgValue = parseInt(totalForAvg/avgcounter)} //calculate the avg for at least 3 days
+		if (debugOutput) console.log("*********SolarPanel dayAvgValue : " + dayAvgValue)
+		
 
 		var todaydate = new Date()
 		var todayFDate = (todaydate.getDate() + "-" + parseInt(Qt.formatDateTime(todaydate,"MM"))).toString().trim()
 		var yesterdayDate =  Qt.formatDate(new Date(todaydate.getFullYear(), todaydate.getMonth(), todaydate.getDate()-1), "dd-MM-yyyy")
-		
 
-		//get last totalValue4
+		//Try to resolve the yesterday total value from teh RRA  database
 		var http= new XMLHttpRequest()
 		var url = "http://localhost/hcb_rrd?action=getRrdData.csv&loggerName=elec_solar_quantity&rra=10yrdays&from=" + yesterdayDate
 		http.onreadystatechange = function() { // Call a function when the state changes.
@@ -192,28 +221,28 @@ App {
 		http.open("GET", url, true)
         http.send()
 	
-		if (typeof yesterdayTotal == 'undefined' || typeof yesterdayTotal == 'null' || yesterdayTotal == null || yesterdayTotal == 0 ){	
-			oldTotalValue = oldTotalValue
+		//if there was no yesterday total in th RRA  database, the yesterday will be the last value from the file
+		if (yesterdayTotal ==0){	
 			totalValue = oldTotalValue
 		}else{
+			var oldTotalValue = 0
+			try {var totalValueString = solarPanel_totalValue.read(); if (totalValueString.length > 0 ){oldTotalValue = parseInt(totalValueString)}} catch(e) {}
 			oldTotalValue = yesterdayTotal
 			totalValue = oldTotalValue
 		}
 
+		//check if there is totday data to be loaded into arrays
+		try {var lastWriteDate = (solarPanel_lastWrite.read()).toString().trim() } catch(e) {}
+		if (debugOutput) console.log("*********SolarPanel starting to load lastwrite timestamp file: "  + lastWriteDate)
 		if (lastWriteDate.length > 2 ){			
 			if (debugOutput) console.log("*********SolarPanel todayFDate:" + todayFDate)
 			if (debugOutput) console.log("*********SolarPanel lastWriteDate:" + lastWriteDate)
-
-			if  (lastWriteDate !== todayFDate){
-				for (var i = 0; i <= 216; i++){fiveminuteValues[i] = 0};
-				for (var i = 0; i <= 24; i++){rollingfiveminuteValues[i] = 0 }
-				for (var i = 0; i <= 216; i++){fiveminuteValuesProd[i] = 0};
-				for (var i = 0; i <= 24; i++){rollingfiveminuteValuesProd[i] = 0 }
-				if (debugOutput) console.log("*********SolarPanel last timestamp is not from today so clear 5 min array")
+			if  (lastWriteDate == todayFDate){
+				if (debugOutput) console.log("*********SolarPanel last timestamp is from today so loading totdays arrays from file")
+				try {var fiveminuteValuesString = solarPanel_fiveminuteValues.read() ; if (fiveminuteValuesString.length >2 ){ fiveminuteValues = fiveminuteValuesString.split(',') }} catch(e) { }
+				try {var fiveminuteValuesStringProd = solarPanel_fiveminuteValuesProd.read() ; if (fiveminuteValuesStringProd.length >2 ){ fiveminuteValuesProd = fiveminuteValuesStringProd.split(',') }} catch(e) { }
 			}
 		}
-
-		if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
 	}
 	
 	
@@ -300,25 +329,31 @@ App {
 		if (debugOutput) console.log("*********SolarPanel got data from Plugin returnString: " + v8)
 		if (v8 == "succes"){
 			succesTime = Qt.formatDateTime(dateTimeNow,"ddd d-M  hh:mm")
-			currentPower = v0					
-			totalValue= v1
-			if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
-			if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
-			if (debugOutput) console.log("*********SolarPanel statuscode:" + v7)
-			if (debugOutput) console.log("*********SolarPanel yesterdayTotal: " + yesterdayTotal)
-			if (debugOutput) console.log("*********SolarPanel totalValue: " + totalValue)
-			todayValue = parseFloat(totalValue - yesterdayTotal)
+			currentPower = v0
+
+			if (typeof v1 == 'undefined' || typeof v1 == 'null' || v1 == null || v1 == 0 || isNaN(v2)){	
+				if (debugOutput) console.log("*********SolarPanel totalValue from API is not valid")
+				totalValue = totalValue
+			}else{ // de api geeft een waarde uit voor het dagtotaal
+				if (debugOutput) console.log("*********SolarPanel totalValue vanuit API: " + v2)
+				todayValue = v1
+			}
 			
 			if (debugOutput) console.log("*********SolarPanel todayValue vanuit v2: " + v2)
-			if (typeof v2 == 'undefined' || typeof v2 == 'null' || v2 == null || v2 == 0 ){	
-				todayValue = todayValue
+			if (typeof v2 == 'undefined' || typeof v2 == 'null' || v2 == null || v2 == 0 || isNaN(v2)){
+				if (debugOutput) console.log("*********SolarPanel todayValue from API is not valid, calculating todayValue from yesterday")
+				todayValue = parseFloat(totalValue - yesterdayTotal)
 			}else{ // de api geeft een waarde uit voor het dagtotaal
 			if (debugOutput) console.log("*********SolarPanel todayValue vanuit API: " + v2)
 				todayValue = v2
 			}
-
-			if (debugOutput) console.log("*********SolarPanel todayValue: " + todayValue)
 			
+			if (debugOutput) console.log("*********SolarPanel statuscode:" + v7)
+			if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
+			if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
+			if (debugOutput) console.log("*********SolarPanel yesterdayTotal: " + yesterdayTotal)
+			if (debugOutput) console.log("*********SolarPanel totalValue: " + totalValue)
+
 			doData()
 		}
 		if (v8 == "error"){
@@ -328,10 +363,7 @@ App {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////DO DATA  //////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
     function randomNumber(from, to) {
 		return Math.floor(Math.random() * (to - from + 1) + from);
@@ -345,81 +377,84 @@ App {
 		return total;
 	}
 
-	
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////DO DATA  //////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
     function doData(){
-		if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
-		if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
+	
+		doEachtimeStuff()
+	
+		if (dtime>=500 & dtime<2300){  //it is daytime
+			doOnlyDuringDayTimeStuff()
+		}
 		
+		if (mins>=0 & mins <=4){
+			doHourlyStuff()
+		}
+		
+		if (dtime>=0 & dtime<=4){ //it is a new day
+			doDailyStuff()
+		}
+    }
+
+/////////////////////////////////////////WRITE 5MIN   DATA/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////Each time data was received      /////////////////////////////////////////////////////////////////////////////////
+	
+	function doEachtimeStuff(){
+		//load current 5 minutes into the array for the 5 minute graph
 		var newArray = []
 		newArray = fiveminuteValues
-		newArray[minsfromsevenIndex] = parseInt(currentPower)
+		newArray[minsfromfiveIndex] = parseInt(currentPower)
 		fiveminuteValues = newArray
 		
+		//load current 5 minutes into the array for the 5 minute production graph
 		var newArrayProd = []
 		newArrayProd = fiveminuteValuesProd
-		newArrayProd[minsfromsevenIndex] = parseInt(currentPowerProd)
+		newArrayProd[minsfromfiveIndex] = parseInt(currentPowerProd)
 		fiveminuteValuesProd = newArrayProd
 
+		//push current 5 minutes into the array for the RRA  flow
 		var http2 = new XMLHttpRequest()
-        if (debugOutput) console.log("*********SolarPanel unixTime : " + parseInt(dateTimeNow.getTime()/1000))
 		var url2 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_flow&rra=5min&samples=%7B%22" + parseInt(dateTimeNow.getTime()/1000)+ "%22%3A" + parseInt(currentPower) + "%7D"
-		if (debugOutput) console.log("*********SolarPanel url2 : " + url2)
 		http2.open("GET", url2, true)
-        http2.send()
+		http2.send()
 		
-		
+		//push quantity into the 5yrhours RRA data
 		//produced this day so it must be in the RRA of next hour 00 mins
 		var nexthour = new Date();
-		if (debugOutput) console.log("*********SolarPanel nexthour: " + nexthour.toString())
 		nexthour.setMinutes (nexthour.getMinutes() + 60);  //60 minutes extra
-		nexthour.setMinutes (0); //round to full hour
-		if (debugOutput) console.log("*********SolarPanel nexthour: " + nexthour.toString())
-		if (debugOutput) console.log("*********SolarPanel nexthour unixTime : " + parseInt(nexthour.getTime()/1000))
-		
+		nexthour.setSeconds(0); //round to full hour
+		nexthour.setMinutes(0); //round to full hour
 		var http3 = new XMLHttpRequest()
 		var url3 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_quantity&rra=5yrhours&samples=%7B%22" + parseInt(nexthour.getTime()/1000)+ "%22%3A" + parseInt(totalValue) + "%7D"
-		if (debugOutput) console.log("*********SolarPanel url3 : " + url3)
 		http3.open("GET", url3, true)
 		http3.send()
 		
 
+		//push quantity into the 10yrdays RRA data
 		//produced this day so it must be in the RRA of tomorrow 00:00
-		const today = new Date()
-		const tomorrow = new Date(today)
+		var tomorrow = new Date()
 		tomorrow.setDate(tomorrow.getDate() + 1)
-		tomorrow.setHours(2,0,0,0)
+		tomorrow.setHours(1,0,0,0)  //to make it UTC
+		if (debugOutput) console.log("*********SolarPanel tomorrow : " +  tomorrow.toString())
 		if (debugOutput) console.log("*********SolarPanel tomorrow unixTime : " + parseInt(tomorrow.getTime()/1000))
-
 		var http4 = new XMLHttpRequest()	
 		var url4 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_quantity&rra=10yrdays&samples=%7B%22" + parseInt(tomorrow.getTime()/1000)+ "%22%3A" + parseInt(totalValue) + "%7D"
-		if (debugOutput) console.log("*********SolarPanel url3 : " + url3)
+		if (debugOutput) console.log("*********SolarPanel url4 : " + url4)
 		http4.open("GET", url4, true)
-        http4.send()
-		
-		
-		
-		if (mins >= 10 & mins < 16){  //every hour
-			//Write 5minute values to file
-			var fiveminuteValuesString = fiveminuteValues[0]
-			for (var j = 1; j <= 216; j++) { 
-				fiveminuteValuesString += "," + fiveminuteValues[j]
-			}
-			solarPanel_fiveminuteValues.write(fiveminuteValuesString)
-			
-			//Write 5minute production values to file
-			var fiveminuteValuesStringProd = fiveminuteValuesProd[0]
-			for (var j = 1; j <= 216; j++) { 
-				fiveminuteValuesStringProd += "," + fiveminuteValuesProd[j]
-			}
-			solarPanel_fiveminuteValuesProd.write(fiveminuteValuesStringProd)
-			solarPanel_lastWrite.write(dday + "-" + month)
+		http4.send()
+	
+	}
 
-		}
+/////////////////////////////////////////WRITE 5MIN   DATA/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////Only during a time period      ///////////////////////////////////////////////////////////////////////////////////
 
+	function doOnlyDuringDayTimeStuff(){
 		//make new rolling array each 5 mins
-		if (debugOutput) console.log("*********SolarPanel calculating rollingfiveminuteValues minsfromsevenIndex" + minsfromsevenIndex)
-		var x2now  = minsfromsevenIndex
+		if (debugOutput) console.log("*********SolarPanel calculating rollingfiveminuteValues minsfromfiveIndex" + minsfromfiveIndex)
+		var x2now  = minsfromfiveIndex
 		var x2twohoursAgo  = x2now - 24  //less 2 hours
 		var newArray5 = []
 		maxRollingY = 0
@@ -432,8 +467,8 @@ App {
 		rollingfiveminuteValues = newArray5
 		
 		//make new rolling array for production each 5 mins
-		if (debugOutput) console.log("*********SolarPanel calculating rollingfiveminuteValues minsfromsevenIndex" + minsfromsevenIndex)
-		var x2now  = minsfromsevenIndex
+		if (debugOutput) console.log("*********SolarPanel calculating rollingfiveminuteValues minsfromfiveIndex" + minsfromfiveIndex)
+		var x2now  = minsfromfiveIndex
 		var x2twohoursAgo  = x2now - 24  //less 2 hours
 		var newArray5Prod = []
 		for (var y = x2twohoursAgo; y <= x2now; y++) { 
@@ -441,34 +476,71 @@ App {
 		}
 		rollingfiveminuteValuesProd = newArray5Prod
 		
-
+		//set the time on the x-axis of the rolling graph
 		now = new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate(), dateTimeNow.getHours(), dateTimeNow.getMinutes())
 		oneHoursEarlier= new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate(), dateTimeNow.getHours()-1, dateTimeNow.getMinutes())
 		twoHoursEarlier= new Date(dateTimeNow.getFullYear(), dateTimeNow.getMonth(), dateTimeNow.getDate(), dateTimeNow.getHours()-2, dateTimeNow.getMinutes())
 		rollingMinX = Qt.formatDateTime(twoHoursEarlier,"hh") + ":" + Qt.formatDateTime(twoHoursEarlier,"mm")
 		rollingCenterX = Qt.formatDateTime(oneHoursEarlier,"hh") + ":" + Qt.formatDateTime(oneHoursEarlier,"mm")
 		rollingMaxX = Qt.formatDateTime(now,"hh") + ":" + Qt.formatDateTime(now,"mm")
-		if (debugOutput) console.log("*********SolarPanel rollingMinX " + rollingMinX)
-		if (debugOutput) console.log("*********SolarPanel rollingCenterX " + rollingCenterX)
-		if (debugOutput) console.log("*********SolarPanel rollingMaxX " + rollingMaxX)
-    }
+	}
 
+/////////////////////////////////////////WRITE HOURLY DATA/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////At the beginning of a new hour ///////////////////////////////////////////////////////////////////////////////////
 
+	function doHourlyStuff(){
+		//Write 5minute values to file
+		var fiveminuteValuesString = fiveminuteValues[0]
+		for (var j = 1; j <= 216; j++) { 
+			fiveminuteValuesString += "," + fiveminuteValues[j]
+		}
+		solarPanel_fiveminuteValues.write(fiveminuteValuesString)
+		
+		//Write 5minute production values to file
+		var fiveminuteValuesStringProd = fiveminuteValuesProd[0]
+		for (var j = 1; j <= 216; j++) { 
+			fiveminuteValuesStringProd += "," + fiveminuteValuesProd[j]
+		}
+		solarPanel_fiveminuteValuesProd.write(fiveminuteValuesStringProd)
+		solarPanel_lastWrite.write(dday + "-" + month)
+		
+	
+		//it seems like the last hour is deleted when the new hour is set (dunno why) so we just set the previos hour again.
+		//push quantity into the 5yrhours RRA data
+		//produced this day so it must be in the RRA of next hour 00 mins
+		var thishour = new Date();
+		if (debugOutput) console.log("*********SolarPanel thishour: " + thishour.toString())
+		thishour.setSeconds(0); //round to full hour
+		thishour.setMinutes(0); //round to full hour
+		if (debugOutput) console.log("*********SolarPanel thishour: " + thishour.toString())
+		if (debugOutput) console.log("*********SolarPanel thishour unixTime : " + parseInt(thishour.getTime()/1000))
+		var http3 = new XMLHttpRequest()
+		var url3 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_quantity&rra=5yrhours&samples=%7B%22" + parseInt(thishour.getTime()/1000)+ "%22%3A" + parseInt(totalValue) + "%7D"
+		if (debugOutput) console.log("*********SolarPanel url3 : " + url3)
+		http3.open("GET", url3, true)
+		http3.send()
+	}
 
 /////////////////////////////////////////WRITE DAILY DATA/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////At the beginning of the day//////////////////////////////////////////////////////////////////////////////////////
 
-	function writeDailyData(){
-		if (debugOutput) console.log("*********SolarPanel dtime: " + dtime )
-		
-
-	//clear the old fiveminute array
+	function doDailyStuff(){
+	
+		//clear the old fiveminute array
 		var newArray2 = []
 		for (var g = 0; g <= 216; g++) {
 			newArray2.push(0)
 		}
 		fiveminuteValues = newArray2	
-	
-	//clear the 5 minutes file so we will start a new fresh day
+		
+		//clear the old production fiveminute array
+		var newArray2Prod = []
+		for (var g = 0; g <= 216; g++) {
+			newArray2Prod.push(0)
+		}
+		fiveminuteValuesProd = newArray2Prod
+		
+		//clear the 5 minutes file so we will start a new fresh day
 		var zeroString = "0"
 		var zeroStringProd = "0"
 		for (var z = 1; z <= 216; z++) { 
@@ -478,37 +550,52 @@ App {
 		}
 		solarPanel_fiveminuteValues.write(zeroString)
 		solarPanel_fiveminuteValuesProd.write(zeroStringProd)
+		
 	
-
-	//clear the old production fiveminute array
-		var newArray2Prod = []
-		for (var g = 0; g <= 216; g++) {
-			newArray2Prod.push(0)
-		}
-		fiveminuteValuesProd = newArray2Prod
-		
-		
+		//shift the last5day array 1 day to the left, push today the the last pos and create a new string
 		var lastFiveDaysString = lastFiveDays[1]
-		for (var g = 1; g < 4; g++) {
-			 lastFiveDaysString += "," + lastFiveDays[g+1]
+		for (var g = 2; g <= 4; g++) {
+			 lastFiveDaysString += "," + lastFiveDays[g]
 		}
+		lastFiveDaysString += "," + todayValue
 		solarPanel_lastFiveDays.write(lastFiveDaysString)
 		
-		var newArray3 = []
-		for (var g  in lastFiveDays) {
-			if (g<5){newArray3.push(lastFiveDays[g+1])}
-		}
-		newArray3.push(todayValue)
-		lastFiveDays = newArray3
 		
+		//calculate the average 5 day value for the daytile
+		lastFiveDays = lastFiveDaysString.split(',')
 		var totalForAvg = 0
-		for (var i in lastFiveDays){totalForAvg += lastFiveDays[i]}
-		if((totalForAvg>0) && (lastFiveDays.length >0)) {dayAvgValue = parseInt(totalForAvg/lastFiveDays.length)}
+		var avgcounter = 0
+		for (var i in lastFiveDays){
+			if (!isNaN(lastFiveDays[i]) & (parseInt(lastFiveDays[i])>0)){
+					totalForAvg = totalForAvg + parseInt(lastFiveDays[i])
+					avgcounter ++
+				}
+			}
+		if((totalForAvg>0) && (avgcounter >3)) {dayAvgValue = parseInt(totalForAvg/avgcounter)} //calculate the avg for at least 3 days
+		if (debugOutput) console.log("*********SolarPanel dayAvgValue : " + dayAvgValue)
+		
 
+		//it seems like the day is deleted when the new day is set so we just set the previos day again.
+		//push quantity into the 10yrdays RRA data
+		//produced this day so it must be in the RRA of thisday 00:00
+		var thisday = new Date()
+		thisday.setDate(thisday.getDate())
+		thisday.setHours(1,0,0,0)  //to make it UTC
+		console.log("*********SolarPanel thisday : " +  thisday.toString())
+		console.log("*********SolarPanel thisday unixTime : " + parseInt(thisday.getTime()/1000))
+
+		var http4 = new XMLHttpRequest()	
+		var url4 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_quantity&rra=10yrdays&samples=%7B%22" + parseInt(thisday.getTime()/1000)+ "%22%3A" + parseInt(totalValue) + "%7D"
+		console.log("*********SolarPanel url4 : " + url4)
+		http4.open("GET", url4, true)
+        http4.send()
+
+		todayValue = 0
 		yesterdayTotal = totalValue
-		oldTotalValue  = totalValue
 		solarPanel_totalValue.write(parseInt(totalValue))
-		solarPanel_lastWrite.write(dday + "-" + month)	}
+		solarPanel_lastWrite.write(dday + "-" + month)	
+	}
+
 	
 ///////////////////////////////////////// TIMERS /////////////////////////////////////////////////////////////////////////////////////////////////
 	
@@ -534,26 +621,22 @@ App {
 				dateTimeNow= new Date()
 				dtime = parseInt(Qt.formatDateTime (dateTimeNow,"hh") + Qt.formatDateTime (dateTimeNow,"mm"))
 
-				if (debugOutput) console.log("*********SolarPanel dtime: " + dtime)
 				dday = dateTimeNow.getDate()
 				month = parseInt(Qt.formatDateTime(dateTimeNow,"MM"))
 				hrs = parseInt(Qt.formatDateTime(dateTimeNow,"hh"))
 				mins = parseInt(Qt.formatDateTime(dateTimeNow,"mm"))
-				var minsfromseven = ((hrs-5)*60) + mins
-				minsfromsevenIndex  = parseInt(minsfromseven/5)
-				if (debugOutput) console.log("*********SolarPanel minsfromseven : " + minsfromseven)
+				var minsfromfive = ((hrs-5)*60) + mins
+				minsfromfiveIndex  = parseInt(minsfromfive/5)
+				if (debugOutput) console.log("*********SolarPanel minsfromfive : " + minsfromfive)
 				if (debugOutput) console.log("*********SolarPanel dtime : " + dtime)
-				if (debugOutput) console.log("*********SolarPanel minsfromsevenIndex : " + minsfromsevenIndex)
-					
-				if ((dtime>=500 & dtime<2300) & enablePolling){  //it is daytime
+				if (debugOutput) console.log("*********SolarPanel minsfromfiveIndex : " + minsfromfiveIndex)
+				
+				if(enablePolling){			
 					requestRRDData()
 					getData()
 				}
+			}
 				
-				if (dtime>=1 & dtime<6){ //just past midnight
-					writeDailyData()
-				}
-            }
     }
  
 ///////////////////////////////////////// SAVE ALL TO SETTINGS ///////////////////////////////////////////////////////////////////////////////////////////////// 
@@ -580,6 +663,7 @@ App {
 			"apiKey" : apiKey,
 			"siteID" : siteID,
 			"urlString" : urlString,
+			"onlinePluginFileName" : onlinePluginFileName,
 			"enableSleep" : tmpenableSleep,
 			"enablePolling" : tmpenablePolling,
 			"DebugOn": tmpDebugOn

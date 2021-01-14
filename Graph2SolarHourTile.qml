@@ -2,7 +2,7 @@ import QtQuick 2.1
 
 HourTile {
 	id: root
-	hourTileTitle: qsTr("Solar 2 uur")
+	hourTileTitle: (app.pluginWarning.length <1)? qsTr("Solar 2 uur") : app.pluginWarning
 	values: app.rollingfiveminuteValues
 	dataType: "electricity"
 	maxValue: (app.maxRollingY)

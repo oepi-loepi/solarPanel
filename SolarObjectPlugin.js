@@ -1,14 +1,29 @@
-/////////             <version>1.0.7</version>
+/////////             <version>1.0.8</version>
 /////////                     GROW1                        /////////////
 /////////  Plugin to extract Growatt Solar data for Toon  ///////////////
 /////////                   By Oepi-Loepi                  ///////////////
 
 	function getSolarData(passWord,userName,apiKey,siteid,urlString,totalValue){
             if (debugOutput) console.log("*********SolarPanel Start getGrowattStep1")
+			
+			//modified hash : if first of pairs  is 0 then replace by c
+			var newpass= Qt.md5(passWord)
+            var newString =""
+            for(var x = 0;x < newpass.length ;x++){
+                console.log("char: " +newpass[x])
+                if ((x%2 == 0) && newpass[x] == "0") {
+                    newString += "c"
+                    console.log("changed into: " + "c")
+                }
+                else{
+                    newString += newpass[x]
+                }
+            }
+			
             var http = new XMLHttpRequest()
             var url = "http://server-api.growatt.com/newLoginAPI.do";
             if (debugOutput) console.log("*********SolarPanel Hashed password: " + Qt.md5(passWord))
-            var params = "password=" + Qt.md5(passWord) + "&userName=" + userName
+            var params = "password=" + newString + "&userName=" + userName
             http.open("POST", url, true)
             http.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
             http.setRequestHeader("Content-length", params.length)

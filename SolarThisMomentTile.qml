@@ -32,7 +32,8 @@ Tile {
 			pixelSize: qfont.tileTitle
 		}
 		color: dimmableColors.tileTitleColor
-		text: "SolarPanel: " + app.selectedInverter
+		text: (app.pluginWarning.length <1)? "SolarPanel: " + app.selectedInverter: app.pluginWarning
+
 	}
 
 	Image {
@@ -58,7 +59,7 @@ Tile {
 			left: dotMedium.right
 			leftMargin: Math.round(3 * horizontalScaling)
 		}
-		visible: p.animationIndex >= 3
+		visible: p.animationIndex >= 3 
 	}
 
 	Rectangle {
@@ -103,14 +104,14 @@ Tile {
 			pixelSize: qfont.tileText
 		}
 		color: dimmableColors.tileTextColor
-		text: isNaN(valueProduced) ? "-" : qsTr("%1 Watt").arg(valueProduced)
+		text: (isNaN(valueProduced)||(app.pluginWarning.length >5)) ? "-" : qsTr("%1 Watt").arg(valueProduced):
 	}
 
 	Timer {
 		id: animationTimer
 		interval: 400
 		repeat: true
-		running: valueProduced > 0
+		running: (valueProduced > 0) &(app.pluginWarning.length<1)
 		onTriggered: p.animationIndex = (p.animationIndex + 1) % 6
 	}
 }

@@ -32,13 +32,14 @@ Tile {
 			pixelSize: qfont.tileTitle
 		}
 		color: dimmableColors.tileTitleColor
-		text: "SolarPanel: " + app.selectedInverter
+		text: (app.pluginWarning.length <1)? "SolarPanel: " + app.selectedInverter : app.pluginWarning
+
 	}
 
 	
 	Text {
 		id: curPower
-		text: "Zon Nu: " + app.currentPower + " W"
+		text: (app.pluginWarning.length <1)?  "Zon Nu: " + app.currentPower + " W" : ""
 		color: !dimState? "black" : "white"
 		anchors {
 			top: tileTitle.bottom
@@ -52,7 +53,7 @@ Tile {
 	Text {
 		id: dayPower
 
-		text: "Vandaag: " + parseFloat(app.todayValue/1000).toFixed(1) + " kWh"
+		text: (app.pluginWarning.length <1)?  "Vandaag: " + parseFloat(app.todayValue/1000).toFixed(1) + " kWh" : ""
 		color: !dimState? "black" : "white"
 		anchors {
 			top: curPower.bottom
@@ -67,7 +68,7 @@ Tile {
    
 	Text {
 		id: curProdPower
-		text: "Lev.: " + app.currentPowerProd + " W"
+		text: (app.pluginWarning.length <1)? "Lev.: " + app.currentPowerProd + " W" : ""
 		color: !dimState ? "black" : "white"
 		anchors {
 			top: dayPower.bottom
@@ -81,7 +82,7 @@ Tile {
 
 	Text {
 		id: curUsagePower
-		text: "Verbruik: " + app.currentUsage + " W"
+		text: (app.pluginWarning.length <1)?  "Verbruik: " + app.currentUsage + " W"  : ""
 		color: !dimState ? "black" : "white"
 		anchors {
 			top: curProdPower.bottom

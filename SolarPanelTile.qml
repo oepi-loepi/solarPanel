@@ -10,7 +10,7 @@ Tile {
 
     Text {
 		id: solarText
-		text: "Vandaag: " + parseFloat(app.todayValue/1000).toFixed(1) + " kWh"
+		text: (app.pluginWarning.length <1)? "Vandaag: " + parseFloat(app.todayValue/1000).toFixed(1) + " kWh" : app.pluginWarning
 		color: !dimState? "black" : "white"
 		anchors {
 			top: parent.top
@@ -24,7 +24,7 @@ Tile {
 	
 	 Text {
 		id: curPower
-		text: app.currentPower + " W"
+		text: (app.pluginWarning.length <1)? app.currentPower + " W" : ""
 		color: !dimState? "black" : "white"
 		anchors {
 			top: solarText.bottom
@@ -69,7 +69,7 @@ Tile {
 		onClicked: {
 			stage.openFullscreen(app.solarPanelScreenUrl)
 		}
-		visible: (app.enableSleep||!dimState )
+		visible: (app.enableSleep||!dimState )& (app.pluginWarning.length <1)
 	}
 
  MouseArea {
