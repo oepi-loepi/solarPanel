@@ -55,8 +55,8 @@ App {
     property string dtime : "0"
 	
 	property string succesTime: ""
-
     property string totalValue : "0"
+	property string savedtotalValue : "0"
 
 	property int 	maxWattage : 300
 	property int 	tempConfigListIndex
@@ -172,11 +172,11 @@ App {
 		}
 		
 		var pluginFileString = pluginFile.read()
-		console.log("*********SolarPanel pluginFile.read() : " + pluginFile.read())
-		console.log("*********SolarPanel onlinePluginFileName : " + onlinePluginFileName)
+		if (debugOutput) console.log("*********SolarPanel pluginFile.read() : " + pluginFile.read())
+		if (debugOutput) console.log("*********SolarPanel onlinePluginFileName : " + onlinePluginFileName)
 		if (pluginFileString.indexOf(onlinePluginFileName)<0 || selectedInverter==""  || onlinePluginFileName =="" ){//wrong plugin
-			console.log("*********SolarPanel wrong plugin : ")
-			console.log("*********SolarPanel has wrong plugin when first started")
+			if (debugOutput) console.log("*********SolarPanel wrong plugin : ")
+			if (debugOutput) console.log("*********SolarPanel has wrong plugin when first started")
 			pluginWarning = "Selecteer Inverter"
 		}else{
 			pluginWarning = ""
@@ -191,8 +191,10 @@ App {
 		var totalForAvg = 0
 		var avgcounter = 0
 		for (var i in lastFiveDays){
+			if (debugOutput) cconsole.log("*********SolarPanel lastFiveDays[i]: " + lastFiveDays[i])
 			if (!isNaN(lastFiveDays[i]) & (parseInt(lastFiveDays[i])>0)){
 					totalForAvg = totalForAvg + parseInt(lastFiveDays[i])
+					if (debugOutput) cconsole.log("*********SolarPanel parsed lastFiveDays[i]: " + lastFiveDays[i])
 					avgcounter ++
 				}
 			}
@@ -397,6 +399,10 @@ App {
 		if (dtime>=0 & dtime<=4){ //it is a new day
 			doDailyStuff()
 		}
+		
+		if (dtime>=100 & dtime<=104){ //it is 1 hour after the beginning of a new day
+			doDelayedDailyStuff()
+		}
     }
 
 /////////////////////////////////////////WRITE 5MIN   DATA/////////////////////////////////////////////////////////////////////////////////////////////////
@@ -553,11 +559,11 @@ App {
 		
 	
 		//shift the last5day array 1 day to the left, push today the the last pos and create a new string
-		var lastFiveDaysString = lastFiveDays[1]
+		var lastFiveDaysString = parseInt(lastFiveDays[1])
 		for (var g = 2; g <= 4; g++) {
-			 lastFiveDaysString += "," + lastFiveDays[g]
+			 lastFiveDaysString += "," + parseInt(lastFiveDays[g])
 		}
-		lastFiveDaysString += "," + todayValue
+		lastFiveDaysString += "," + parseInt(todayValue)
 		solarPanel_lastFiveDays.write(lastFiveDaysString)
 		
 		
@@ -575,6 +581,16 @@ App {
 		if (debugOutput) console.log("*********SolarPanel dayAvgValue : " + dayAvgValue)
 		
 
+		savedtotalValue = todayValue
+		doDelayedDailyStuff()
+		todayValue = 0
+		yesterdayTotal = totalValue
+		solarPanel_totalValue.write(parseInt(totalValue))
+		solarPanel_lastWrite.write(dday + "-" + month)	
+	}
+	
+	function doDelayedDailyStuff(){
+	
 		//it seems like the day is deleted when the new day is set so we just set the previos day again.
 		//push quantity into the 10yrdays RRA data
 		//produced this day so it must be in the RRA of thisday 00:00
@@ -583,17 +599,12 @@ App {
 		thisday.setHours(1,0,0,0)  //to make it UTC
 		console.log("*********SolarPanel thisday : " +  thisday.toString())
 		console.log("*********SolarPanel thisday unixTime : " + parseInt(thisday.getTime()/1000))
-
+		console.log("*********SolarPanel thisday value : " + parseInt(savedtotalValue)    + " set at " + dtime )
 		var http4 = new XMLHttpRequest()	
-		var url4 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_quantity&rra=10yrdays&samples=%7B%22" + parseInt(thisday.getTime()/1000)+ "%22%3A" + parseInt(totalValue) + "%7D"
+		var url4 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_quantity&rra=10yrdays&samples=%7B%22" + parseInt(thisday.getTime()/1000)+ "%22%3A" + parseInt(savedtotalValue) + "%7D"
 		console.log("*********SolarPanel url4 : " + url4)
 		http4.open("GET", url4, true)
         http4.send()
-
-		todayValue = 0
-		yesterdayTotal = totalValue
-		solarPanel_totalValue.write(parseInt(totalValue))
-		solarPanel_lastWrite.write(dday + "-" + month)	
 	}
 
 	
