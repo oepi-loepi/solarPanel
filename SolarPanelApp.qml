@@ -334,17 +334,16 @@ App {
     }
 
 	function parseReturnData(v0,v1,v2,v3,v4,v5,v6,v7,v8){
-		if (debugOutput) console.log("*********SolarPanel got data from Plugin returnString: " + v8)
+		console.log("*********SolarPanel got data from Plugin returnString: " + v8)
 		if (v8 == "succes"){
 			succesTime = Qt.formatDateTime(dateTimeNow,"ddd d-M  hh:mm")
 			currentPower = v0
 
 			if (typeof v1 == 'undefined' || typeof v1 == 'null' || v1 == null || v1 == 0 || isNaN(v2)){	
 				if (debugOutput) console.log("*********SolarPanel totalValue from API is not valid")
-				totalValue = totalValue
 			}else{ // de api geeft een waarde uit voor het dagtotaal
-				if (debugOutput) console.log("*********SolarPanel totalValue vanuit API: " + v2)
-				todayValue = v1
+				if (debugOutput) console.log("*********SolarPanel totalValue vanuit API: " + v1)
+				totalValue = v1
 			}
 			
 			if (debugOutput) console.log("*********SolarPanel todayValue vanuit v2: " + v2)
@@ -352,10 +351,11 @@ App {
 				if (debugOutput) console.log("*********SolarPanel todayValue from API is not valid, calculating todayValue from yesterday")
 				todayValue = parseFloat(totalValue - yesterdayTotal)
 			}else{ // de api geeft een waarde uit voor het dagtotaal
-			if (debugOutput) console.log("*********SolarPanel todayValue vanuit API: " + v2)
+				if (debugOutput) console.log("*********SolarPanel todayValue vanuit API: " + v2)
 				todayValue = v2
 			}
 			
+			if (debugOutput) console.log("*********SolarPanel dtime: " + dtime)
 			if (debugOutput) console.log("*********SolarPanel statuscode:" + v7)
 			if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
 			if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
@@ -366,7 +366,6 @@ App {
 		}
 		if (v8 == "error"){
 			currentPower = 0					
-			totalValue= totalValue
 			doData()
 		}
 	}
@@ -636,7 +635,7 @@ App {
             onTriggered: {
 			
 				dateTimeNow= new Date()
-				dtime = parseInt(Qt.formatDateTime (dateTimeNow,"hh") + Qt.formatDateTime (dateTimeNow,"mm"))
+				dtime = parseInt(Qt.formatDateTime (dateTimeNow,"hh") + "" + Qt.formatDateTime (dateTimeNow,"mm"))
 
 				dday = dateTimeNow.getDate()
 				month = parseInt(Qt.formatDateTime(dateTimeNow,"MM"))

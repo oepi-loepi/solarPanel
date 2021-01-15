@@ -32,8 +32,7 @@
                             if (http.status === 200) {
                                  getGrowattStep2();
                             } else {
-                                if (debugOutput) console.log("*********SolarPanel error: " + http.status)
-				parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
+								parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
                             }
                         }
                     }
@@ -50,15 +49,19 @@
         http.onreadystatechange = function() { // Call a function when the state changes.
                     if (http.readyState === 4) {
                         if (http.status === 200) {
-                            if (debugOutput) console.log("*********SolarPanel Growatt: " + http.responseText)
-                            var JsonString = http.responseText
-                            var JsonObject= JSON.parse(JsonString)
-                            currentPower = parseInt(JsonObject.powerValue)
-			    var today2 = Math.floor((JsonObject.todayValue)*1000)
-                            totalValue= Math.floor((JsonObject.totalValue)*1000)
-			    parseReturnData(currentPower,totalValue,today2,0,0,0,0,http.status,"succes")
+                            try {
+								var JsonString = http.responseText
+								var JsonObject= JSON.parse(JsonString)
+								currentPower = parseInt(JsonObject.powerValue)
+								var today2 = Math.floor((JsonObject.todayValue)*1000)
+								totalValue= Math.floor((JsonObject.totalValue)*1000)
+								parseReturnData(currentPower,totalValue,today2,0,0,0,0,http.status,"succes")
+							}
+							catch (e){
+								currentPower = 0
+								parseReturnData(0,totalValue,todayValue,0,0,0,0, http.status,"error")
+							}
 				} else {
-					if (debugOutput) console.log("*********SolarPanel error: " + http.status)
 					parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
 				}
 			}
