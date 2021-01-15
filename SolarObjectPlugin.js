@@ -1,4 +1,4 @@
-/////////             <version>1.0.8</version>
+/////////             <version>1.0.9</version>
 /////////                     GROW1                        /////////////
 /////////  Plugin to extract Growatt Solar data for Toon  ///////////////
 /////////                   By Oepi-Loepi                  ///////////////
@@ -10,10 +10,8 @@
 			var newpass= Qt.md5(passWord)
             var newString =""
             for(var x = 0;x < newpass.length ;x++){
-                console.log("char: " +newpass[x])
                 if ((x%2 == 0) && newpass[x] == "0") {
                     newString += "c"
-                    console.log("changed into: " + "c")
                 }
                 else{
                     newString += newpass[x]
