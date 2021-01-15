@@ -222,23 +222,29 @@ App {
 		}
 		http.open("GET", url, true)
         http.send()
+		
+		var oldTotalValue = 0
+		try {var totalValueString = solarPanel_totalValue.read(); if (totalValueString.length > 0 ){oldTotalValue = parseInt(totalValueString)}} catch(e) {}
+		
 	
 		//if there was no yesterday total in th RRA  database, the yesterday will be the last value from the file
-		if (yesterdayTotal ==0){	
-			totalValue = oldTotalValue
-		}else{
-			var oldTotalValue = 0
-			try {var totalValueString = solarPanel_totalValue.read(); if (totalValueString.length > 0 ){oldTotalValue = parseInt(totalValueString)}} catch(e) {}
-			oldTotalValue = yesterdayTotal
-			totalValue = oldTotalValue
+		if (typeof yesterdayTotal != 'undefined'  || typeof yesterdayTotal != 'null' || isNaN(yesterdayTotal)){
+			if (yesterdayTotal == 0){
+				totalValue = oldTotalValue
+			}else{
+				oldTotalValue = yesterdayTotal
+				totalValue = oldTotalValue
+			}
 		}
 
 		//check if there is totday data to be loaded into arrays
+		
 		try {var lastWriteDate = (solarPanel_lastWrite.read()).toString().trim() } catch(e) {}
-		if (debugOutput) console.log("*********SolarPanel starting to load lastwrite timestamp file: "  + lastWriteDate)
+		
+		console.log("*********SolarPanel starting to load lastwrite timestamp file: "  + lastWriteDate)
 		if (lastWriteDate.length > 2 ){			
-			if (debugOutput) console.log("*********SolarPanel todayFDate:" + todayFDate)
-			if (debugOutput) console.log("*********SolarPanel lastWriteDate:" + lastWriteDate)
+			console.log("*********SolarPanel todayFDate:" + todayFDate)
+			console.log("*********SolarPanel lastWriteDate:" + lastWriteDate)
 			if  (lastWriteDate == todayFDate){
 				if (debugOutput) console.log("*********SolarPanel last timestamp is from today so loading totdays arrays from file")
 				try {var fiveminuteValuesString = solarPanel_fiveminuteValues.read() ; if (fiveminuteValuesString.length >2 ){ fiveminuteValues = fiveminuteValuesString.split(',') }} catch(e) { }

@@ -1,3 +1,6 @@
+1.1.12
+- minor error fixed not loading 5min values at restart
+
 1.1.11
 - day adjus for prev day delayed by 1 hour (so the prev day will be set 1 hr later in the night)
 
