@@ -483,7 +483,12 @@ App {
 		var x2twohoursAgo  = x2now - 24  //less 2 hours
 		var newArray5Prod = []
 		for (var y = x2twohoursAgo; y <= x2now; y++) { 
-				newArray5Prod.push(fiveminuteValuesProd[y])
+				if (debugOutput) console.log ("*********SolarPanel minsfromfiveIndex y:   " + y + "   value: " + (typeof fiveminuteValuesProd[y]))
+				if (typeof fiveminuteValuesProd[y] != 'undefined' & typeof fiveminuteValuesProd[y] != 'null'){
+					newArray5Prod.push(fiveminuteValuesProd[y])
+				}else{
+					newArray5Prod.push(0)
+				}
 		}
 		rollingfiveminuteValuesProd = newArray5Prod
 		
