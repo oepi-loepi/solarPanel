@@ -91,11 +91,16 @@ Item {
 	function calculateValues(){
 		if(!isManualMax){
 			iMax = 1
-			iMin = dataValues[0]
-			if(isAreaGraph) iMax = 100
-			for (var i in dataValues){
-			  if (dataValues[i] < iMin)iMin = dataValues[i]
-			  if (dataValues[i] > iMax)iMax = dataValues[i]
+			if (typeof dataValues[0] != 'undefined' && typeof dataValues[0] != 'null' && !isNaN(dataValues[0])){
+				iMin = dataValues[0]
+				if(isAreaGraph) iMax = 100
+				for (var i in dataValues){
+				  if (dataValues[i] < iMin)iMin = dataValues[i]
+				  if (dataValues[i] > iMax)iMax = dataValues[i]
+				}
+			}else{
+				iMin = 0
+				iMax = 10
 			}
 		}
 		

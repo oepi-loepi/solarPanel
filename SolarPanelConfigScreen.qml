@@ -546,26 +546,31 @@ Screen {
 			top: listviewContainer1.top	
 			left : mytext1.left
 		}
-		Text {id: inputField1Text;font.pixelSize: isNxt ? 18:14; font.family: qfont.semiBold.name ;text:fieldText1;visible: field1visible }
-		EditTextLabel4421 { 
-			id: inputField1 ; width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32; height: isNxt? 35:28;	leftTextAvailableWidth: isNxt? 100:80; 
-			leftText: "";visible: (inputField1Text.visible); onClicked:{qkeyboard.open(fieldText1, inputField1.inputText, saveFieldData1)}
-		}
+		//username
 		Text {id: inputField2Text;font.pixelSize: isNxt ? 18:14; font.family: qfont.semiBold.name ;text:fieldText2;visible: field2visible}
 		EditTextLabel4421 { 
 			id: inputField2 ; width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32; height: isNxt? 35:28;	leftTextAvailableWidth: isNxt? 100:80; 
 			leftText: "";	visible: (inputField2Text.visible);	onClicked: {qkeyboard.open(fieldText2, inputField2.inputText, saveFieldData2)}
 		}
+		//password
+		Text {id: inputField1Text;font.pixelSize: isNxt ? 18:14; font.family: qfont.semiBold.name ;text:fieldText1;visible: field1visible }
+		EditTextLabel4421 { 
+			id: inputField1 ; width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32; height: isNxt? 35:28;	leftTextAvailableWidth: isNxt? 100:80; 
+			leftText: "";visible: (inputField1Text.visible); onClicked:{qkeyboard.open(fieldText1, inputField1.inputText, saveFieldData1)}
+		}
+		//siteid
 		Text {id: inputField3Text;font.pixelSize: isNxt ? 18:14; font.family: qfont.semiBold.name ;text:fieldText3;visible: field3visible }
 		EditTextLabel4421 { 
 			id: inputField3 ; width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32; height: isNxt? 35:28;	leftTextAvailableWidth: isNxt? 100:80; 
 			leftText: "";visible: (inputField3Text.visible);	onClicked: {qkeyboard.open(fieldText3, inputField3.inputText, saveFieldData3)}
 		}
+		//apikey
 		Text {id: inputField4Text;font.pixelSize: isNxt ? 18:14; font.family: qfont.semiBold.name ;text:fieldText4;visible: field4visible}
 		EditTextLabel4421 { 
 			id: inputField4 ; width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32; height: isNxt? 35:28;	leftTextAvailableWidth: isNxt? 100:80; 
 			leftText: ""; visible: (inputField4Text.visible); onClicked: {qkeyboard.open(fieldText4, inputField4.inputText, saveFieldData4)}
 		}
+		//url
 		Text {id: inputField5Text;font.pixelSize: isNxt ? 18:14; font.family: qfont.semiBold.name ;text:fieldText5;visible: field5visible}
 		EditTextLabel4421 { 
 			id: inputField5 ; width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32; height: isNxt? 35:28;	leftTextAvailableWidth: isNxt? 100:80; 
@@ -984,7 +989,7 @@ Screen {
 					console.log("*********SolarPanel restartingToon")
 					app.popupString = "Rebooten van Toon" + "..." 
 					app.solarRebootPopup.hide()
-					//app.restartToon()
+					app.restartToon()
 				}
 				break;
 			}
