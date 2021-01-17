@@ -984,7 +984,7 @@ Screen {
 					console.log("*********SolarPanel restartingToon")
 					app.popupString = "Rebooten van Toon" + "..." 
 					app.solarRebootPopup.hide()
-					//app.restartToon()
+					app.restartToon()
 				}
 				break;
 			}
