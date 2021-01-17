@@ -1,3 +1,9 @@
+1.2.0
+- first production release
+
+1.1.14
+- nightly debugging. minor errors fixed
+
 1.1.13
 - minor error fixed (parsing day)
 
