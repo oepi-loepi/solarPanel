@@ -32,7 +32,7 @@ Tile {
 			pixelSize: qfont.tileTitle
 		}
 		color: dimmableColors.tileTitleColor
-		text: (app.pluginWarning.length <1)? "SolarPanel: " + app.selectedInverter: app.pluginWarning
+		text: (app.pluginWarning.length <1)? (app.inverterCount<2)? "SolarPanel: " + app.selectedInverter: "Totaal Solar" : app.pluginWarning
 
 	}
 
