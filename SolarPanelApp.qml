@@ -79,42 +79,31 @@ App {
 	property bool 	enableSleep : false
 	property bool 	debugOutput : false	// Show console messages. Turn on in settings file !
 	property bool 	enablePolling : true
-	
 	property string configMsgUuid : ""
 	property string popupString : "SolarPanel instellen en herstarten als nodig" + "..."
 	property string pluginWarning : "Selecteer Inverter"
-
-	
 	property variant fiveminuteValues: []
 	property variant rollingfiveminuteValues:[]
-	
 	property variant fiveminuteValuesProd: []
 	property variant rollingfiveminuteValuesProd:[]
-	
 	property variant lastFiveDays: []
-	
 	property string selectedInverter: ""
 	property string onlinePluginFileName:""
-	
 	property string selectedInverter2: ""
 	property string onlinePluginFileName2:""
-	
-	property int inverterCount
-	property int getDataCount : 1
+	property int inverterCount : 1
+	property int getDataCount : 0
 	property int getDataStepper : 1
 	property bool stepRunning : false
-	
 	property int inverter1CurrentPower
 	property int inverter1Day
 	property int inverter1Total
-	
 	property string passWord : ""
 	property string userName : ""
 	property string siteID : ""
 	property string apiKey : ""
     property string urlString : ""
 	property string idx : ""
-	
 	property string passWord2 : ""
 	property string userName2 : ""
 	property string siteID2 : ""
@@ -123,7 +112,7 @@ App {
 	property string idx2 : ""
 	
 	property variant solarpanelSettingsJson : {
-			'inverterCount': "",
+			'inverterCount': "1",
 			'selectedInverter': "",
 			'passWord' : "",
 			'userName' : "",
@@ -176,17 +165,32 @@ App {
 		
 		currentPower = 0
 
-	
 		//get the user settings from the system file
 		try {
 			solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
-			inverterCount = parseInt(solarpanelSettingsJson['inverterCount'])
 			selectedInverter = solarpanelSettingsJson['selectedInverter-v2']
 			passWord = solarpanelSettingsJson['passWord']
 			userName = solarpanelSettingsJson['userName']
 			apiKey = solarpanelSettingsJson['apiKey']
 			siteID = solarpanelSettingsJson['siteID']
 			urlString = solarpanelSettingsJson['urlString']
+			if (solarpanelSettingsJson['enableSleep'] == "Yes") {enableSleep = true} else {enableSleep = false}
+			if (solarpanelSettingsJson['enablePolling'] == "No") {enablePolling = false} else {enablePolling = true}
+			//if (solarpanelSettingsJson['DebugOn'] == "Yes") {debugOutput = true} else {debugOutput = false}
+		} catch(e) {
+		}
+		
+		//must be a seperate try because this parameter was added later
+		try {
+			solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
+			onlinePluginFileName = solarpanelSettingsJson['onlinePluginFileName']
+		} catch(e) {
+		}
+		
+		//must be a seperate try because this parameter was added later
+		try {
+			solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
+			onlinePluginFileName2 = solarpanelSettingsJson['onlinePluginFileName2']
 			idx = solarpanelSettingsJson['idx']
 			selectedInverter2 = solarpanelSettingsJson['selectedInverter2-v2']
 			passWord2 = solarpanelSettingsJson['passWord2']
@@ -195,21 +199,12 @@ App {
 			siteID2 = solarpanelSettingsJson['siteID2']
 			urlString2 = solarpanelSettingsJson['urlString2']
 			idx2 = solarpanelSettingsJson['idx2']
-			if (solarpanelSettingsJson['enableSleep'] == "Yes") {enableSleep = true} else {enableSleep = false}
-			if (solarpanelSettingsJson['enablePolling'] == "No") {enablePolling = false} else {enablePolling = true}
-			//if (solarpanelSettingsJson['DebugOn'] == "Yes") {debugOutput = true} else {debugOutput = false}
+			onlinePluginFileName2 = solarpanelSettingsJson['onlinePluginFileName2']
+			inverterCount = parseInt(solarpanelSettingsJson['inverterCount'])
 		} catch(e) {
 		}
 		
 		//check if plugin matches the selectedinverter
-		//must be a seperate try because this parameter was added later
-		try {
-			solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
-			onlinePluginFileName = solarpanelSettingsJson['onlinePluginFileName']
-			onlinePluginFileName2 = solarpanelSettingsJson['onlinePluginFileName2']
-		} catch(e) {
-		}
-		
 		var pluginFileString = pluginFile.read()
 		if (debugOutput) console.log("*********SolarPanel pluginFile.read() : " + pluginFile.read())
 		if (debugOutput) console.log("*********SolarPanel onlinePluginFileName : " + onlinePluginFileName)
@@ -292,7 +287,7 @@ App {
 		
 		try {var lastWriteDate = (solarPanel_lastWrite.read()).toString().trim() } catch(e) {}
 		
-		console.log("*********SolarPanel starting to load lastwrite timestamp file: "  + lastWriteDate)
+		if (debugOutput) console.log("*********SolarPanel starting to load lastwrite timestamp file: "  + lastWriteDate)
 		if (lastWriteDate.length > 2 ){			
 			if (debugOutput) console.log("*********SolarPanel todayFDate:" + todayFDate)
 			if (debugOutput) console.log("*********SolarPanel lastWriteDate:" + lastWriteDate)
@@ -380,16 +375,13 @@ App {
 ///////////////////////////////////////////////////////////////// GET DATA //////////////////////////////////////////////////////////////////////////////	
 
 	function getData(){
-	console.log("*********SolarPanel send request to Plugin")
 		if (getDataCount == 0){
-			console.log("*********SolarPanel send first request to Plugin")
 			inverter1CurrentPower = 0
 			inverter1Day = 0
 			inverter1Total = 0
 			Solar.getSolarData(passWord,userName,apiKey,siteID,urlString, parseInt(totalValue))
 		}
 		if (getDataCount == 1){
-			console.log("*********SolarPanel send second request to Plugin")
 			Solar2.getSolarData(passWord2,userName2,apiKey2,siteID2,urlString2, parseInt(totalValue))
 		}
     }
@@ -398,7 +390,6 @@ App {
 		getDataCount++
 		//first inverter while there must be 2 inverters
 		if (inverterCount == 2 & getDataCount == 1){
-			console.log("*********SolarPanel first return: " + v8)
 			if (v8 == "succes"){
 				succesTime = Qt.formatDateTime(dateTimeNow,"ddd d-M  hh:mm")
 				inverter1CurrentPower = v0
@@ -414,9 +405,8 @@ App {
 			}
 			getData()
 		}
-		
 		//second inverter while there must be 2 inverters or first if there is only one inverter
-		if ((inverterCount == 1 & getDataCount == 1) || (inverterCount == 2 & getDataCount == 2)){	
+		if ((inverterCount == 1 & getDataCount == 1) || (inverterCount == 2 & getDataCount == 2)){
 			if (v8 == "succes"){
 				succesTime = Qt.formatDateTime(dateTimeNow,"ddd d-M  hh:mm")
 				currentPower = parseInt(v0) + inverter1CurrentPower
@@ -438,7 +428,6 @@ App {
 				if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
 				if (debugOutput) console.log("*********SolarPanel yesterdayTotal: " + yesterdayTotal)
 				if (debugOutput) console.log("*********SolarPanel totalValue: " + totalValue)
-
 				doData()
 			}
 			if (v8 == "error"){

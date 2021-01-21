@@ -155,6 +155,7 @@ Screen {
 		stepRunning  = true
 	}
 
+/////////////////////////////////////////////////////// ADD ALL INVERTERS TO THE LIST ///////////////////////////////////////////////
 	function fillInverters(){
 		numberofItems =  invertersNameArray.length
 		model.clear()
@@ -163,7 +164,7 @@ Screen {
 		}
 		
 	}
-	
+/////////////////////////////////////////////////////// GET INVERTERS FROM THE INTERNET  ///////////////////////////////////////////////	
 	function getInverters(){
 		if (invertersNameArray.length < 1 || manual){
 			manual = false 
@@ -202,18 +203,23 @@ Screen {
 			http.send()
 		}	
 	}
-	
+
+/////////////////////////////////////////////////////// AFTER INVERTERS ARE FETCHED FROM THE INTERNET ///////////////////////////////////////////////
+
 	function resumefromHttpRequest(){
+	console.log("*********SolarPanel gselectedInverter : " + selectedInverter)
 		enableSleepToggle.isSwitchedOn = app.enableSleep
 		addCustomTopRightButton("Opslaan")
 		fillInverters()
-		tempPassWord2 = app.passWord2
-		tempUserName2 = app.userName2
-		tempApiKey2 = app.apiKey2 
-		tempSiteID2= app.siteID2
-		tempURL2 = app.urlString2
-		tempIDX2 = app.apiKey2 
-		setFieldText2()
+		if (app.inverterCount == 2){
+			tempPassWord2 = app.passWord2
+			tempUserName2 = app.userName2
+			tempApiKey2 = app.apiKey2 
+			tempSiteID2= app.siteID2
+			tempURL2 = app.urlString2
+			tempIDX2 = app.apiKey2 
+			setFieldText2()
+		}
 		tempPassWord = app.passWord
 		tempUserName = app.userName
 		tempApiKey = app.apiKey 
@@ -223,9 +229,11 @@ Screen {
 		setFieldText()
 	}
 
+/////////////////////////////////////////////////////// CREATE INPUTFIELDS DEPENDANT ON THER "DATA" FIELD ///////////////////////////////////////////////
 	function setFieldText() {
+		console.log("*********SolarPanel gselectedInverter : " + selectedInverter)
 		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
-			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){ listview1.currentIndex = x2 ; showUpdate = true}
+			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){listview1.currentIndex = x2 ; showUpdate = true}
 		}
 		field1visible = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('ass')>-1)
 		field2visible = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('use')>-1)
@@ -246,7 +254,9 @@ Screen {
 		field5visible2 = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('url')>-1)
 		field6visible2 = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('idx')>-1)
 	}
-	
+
+/////////////////////////////////////////////////////// SAVE DATA TO TEMPS WHEN SAVE IS CLICKED ON AN INPUTFIELD ///////////////////////////////////////////////
+
 	function saveFieldData1(text) {	tempPassWord = text	}
 	function saveFieldData2(text) {	tempUserName= text	}
 	function saveFieldData3(text) {	tempSiteID= text	}
@@ -260,7 +270,8 @@ Screen {
 	function saveFieldData25(text) {tempURL2= text}
 	function saveFieldData26(text) {tempApiKey2= text}	
 	
-	
+
+/////////////////////////////////////////////////////// CHECK FOR UPDATES ///////////////////////////////////////////////
 	function checkforUpdates(){
 		//check current version
 		updatechecked = true
@@ -331,7 +342,7 @@ Screen {
 		http.open("GET",pluginUrl + onlinePluginFileName2 + ".plugin.txt"  , true)
 		http.send()
 	}	
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////// CHECK DIFFERENCE BETWEEN VERSIONS ///////////////////////////////////////////////
 
 	function compareVersions(oldversionTotal,onlineversionTotal){
 		updatepossible = false
@@ -374,6 +385,89 @@ Screen {
 		}
 	}
 	
+/////////////////////////////////////////////////////// UPDATE PLUGIN ///////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	function updatePlugin(){
+		app.popupString = "Plugin ophalen voor " + selectedInverter + "..."
+		app.solarRebootPopup.show()
+		//get filename of installed inverter
+		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
+			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){onlinePluginFileName = filenameArray[x2]}
+		}
+		needRestart = true
+		if (debugOutput) console.log("*********SolarPanel downloading new inverter plugin")
+		var http = new XMLHttpRequest()
+		http.onreadystatechange=function() {
+			if (http.readyState === 4){
+				if (http.status === 200) {
+					if (debugOutput) console.log("*********SolarPanel new Plugin: " + http.responseText)
+					pluginFile.write(http.responseText)
+					needRestart = true
+					app.popupString = "Plugin opgehaald voor " + selectedInverter + "..." 
+					oldversionTotal = onlineversionTotal
+					oldversionText.text = "Oude versie: " + oldversionTotal +  " (geupdate, restart nodig)"
+					app.solarRebootPopup.hide()
+					updated = true
+					updateSucces = true
+					needRestart = true
+					updateSuccesText.text = "Update geslaagd"
+				}
+				else {
+					if (debugOutput) console.log("*********SolarPanel error retrieving new Plugin: " + http.status)
+					app.popupString = "Fout in ophalen van plugin" + "..." 
+					updateSucces = false
+					updateSuccesText.text = "Update mislukt"
+					app.solarRebootPopup.hide()
+				}
+			}
+		}
+		if (debugOutput) console.log(pluginUrl + onlinePluginFileName+ ".plugin.txt")
+		http.open("GET",pluginUrl + onlinePluginFileName+ ".plugin.txt"  , true)
+		http.send()
+	}
+
+
+	function updatePlugin2(){
+		app.popupString = "Plugin ophalen voor " + selectedInverter2 + "..."
+		app.solarRebootPopup.show()
+		//get filename of installed inverter
+		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
+			if (invertersNameArray[x2].toLowerCase()==selectedInverter2.toLowerCase()){onlinePluginFileName2 = filenameArray[x2]}
+		}
+		needRestart = true
+		if (debugOutput) console.log("*********SolarPanel downloading new inverter plugin")
+		var http = new XMLHttpRequest()
+		http.onreadystatechange=function() {
+			if (http.readyState === 4){
+				if (http.status === 200) {
+					if (debugOutput) console.log("*********SolarPanel new Plugin: " + http.responseText)
+					pluginFile2.write(http.responseText)
+					app.popupString = "Plugin opgehaald voor " + selectedInverter2 + "..." 
+					oldversionTotal2 = onlineversionTotal2
+					oldversionText2.text = "Oude versie: " + oldversionTotal2 +  " (geupdate, restart nodig)"
+					app.solarRebootPopup.hide()
+					updated2 = true
+					updateSucces2 = true
+					needRestart = true
+					updateSuccesText2.text = "Update geslaagd"
+				}
+				else {
+					if (debugOutput) console.log("*********SolarPanel error retrieving new Plugin: " + http.status)
+					app.popupString = "Fout in ophalen van plugin" + "..." 
+					updateSucces2 = false
+					updateSuccesText2.text = "Update mislukt"
+					app.solarRebootPopup.hide()
+				}
+			}
+		}
+		if (debugOutput) console.log(pluginUrl + onlinePluginFileName2+ ".plugin.txt")
+		http.open("GET",pluginUrl + onlinePluginFileName2+ ".plugin.txt"  , true)
+		http.send()
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////// START GUI ///////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	Text {
 		id: mytexttop1
 		text: "Selecteer je inverter(s) en vul je gegevens in."
@@ -498,7 +592,7 @@ Screen {
 		}
 	}
 
-/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	IconButton {
 		id: upButton
@@ -981,85 +1075,11 @@ Screen {
 		
 	}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	function updatePlugin(){
-		app.popupString = "Plugin ophalen voor " + selectedInverter + "..."
-		app.solarRebootPopup.show()
-		//get filename of installed inverter
-		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
-			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){onlinePluginFileName = filenameArray[x2]}
-		}
-		needRestart = true
-		if (debugOutput) console.log("*********SolarPanel downloading new inverter plugin")
-		var http = new XMLHttpRequest()
-		http.onreadystatechange=function() {
-			if (http.readyState === 4){
-				if (http.status === 200) {
-					if (debugOutput) console.log("*********SolarPanel new Plugin: " + http.responseText)
-					pluginFile.write(http.responseText)
-					needRestart = true
-					app.popupString = "Plugin opgehaald voor " + selectedInverter + "..." 
-					oldversionTotal = onlineversionTotal
-					oldversionText.text = "Oude versie: " + oldversionTotal +  " (geupdate, restart nodig)"
-					app.solarRebootPopup.hide()
-					updated = true
-					updateSucces = true
-					needRestart = true
-					updateSuccesText.text = "Update geslaagd"
-				}
-				else {
-					if (debugOutput) console.log("*********SolarPanel error retrieving new Plugin: " + http.status)
-					app.popupString = "Fout in ophalen van plugin" + "..." 
-					updateSucces = false
-					updateSuccesText.text = "Update mislukt"
-					app.solarRebootPopup.hide()
-				}
-			}
-		}
-		if (debugOutput) console.log(pluginUrl + onlinePluginFileName+ ".plugin.txt")
-		http.open("GET",pluginUrl + onlinePluginFileName+ ".plugin.txt"  , true)
-		http.send()
-	}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////// CHECK AND SAVE ALL WHEN OPSLAN IS CLICKED ///////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	function updatePlugin2(){
-		app.popupString = "Plugin ophalen voor " + selectedInverter + "..."
-		app.solarRebootPopup.show()
-		//get filename of installed inverter
-		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
-			if (invertersNameArray[x2].toLowerCase()==selectedInverter2.toLowerCase()){onlinePluginFileName2 = filenameArray[x2]}
-		}
-		needRestart = true
-		if (debugOutput) console.log("*********SolarPanel downloading new inverter plugin")
-		var http = new XMLHttpRequest()
-		http.onreadystatechange=function() {
-			if (http.readyState === 4){
-				if (http.status === 200) {
-					if (debugOutput) console.log("*********SolarPanel new Plugin: " + http.responseText)
-					pluginFile2.write(http.responseText)
-					app.popupString = "Plugin opgehaald voor " + selectedInverter2 + "..." 
-					oldversionTotal2 = onlineversionTotal2
-					oldversionText2.text = "Oude versie: " + oldversionTotal2 +  " (geupdate, restart nodig)"
-					app.solarRebootPopup.hide()
-					updated2 = true
-					updateSucces2 = true
-					needRestart = true
-					updateSuccesText2.text = "Update geslaagd"
-				}
-				else {
-					if (debugOutput) console.log("*********SolarPanel error retrieving new Plugin: " + http.status)
-					app.popupString = "Fout in ophalen van plugin" + "..." 
-					updateSucces2 = false
-					updateSuccesText2.text = "Update mislukt"
-					app.solarRebootPopup.hide()
-				}
-			}
-		}
-		if (debugOutput) console.log(pluginUrl + onlinePluginFileName2+ ".plugin.txt")
-		http.open("GET",pluginUrl + onlinePluginFileName2+ ".plugin.txt"  , true)
-		http.send()
-	}
-	
 	function modRRDConfig(configChangeStep){
 		var configfileString
 		
@@ -1462,6 +1482,9 @@ Screen {
 		}
     }
 	
+/////////////////////////////////////////////////////// TEST MODUS GUI ///////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	MouseArea {
 		height : 80
 		width : 80
