@@ -10,7 +10,7 @@ import FileIO 1.0
 import BxtClient 1.0
 import qb.energyinsights 1.0 as EnergyInsights
 import "SolarObjectPlugin.js" as Solar
-
+import "SolarObjectPlugin2.js" as Solar2
 
 App {
 	id: solarPanelApp
@@ -59,7 +59,7 @@ App {
 	property string savedtotalValue : "0"
 
 	property int 	maxWattage : 300
-	property int 	tempConfigListIndex
+	
 	property string rollingMinX :"05:00"
 	property string rollingCenterX : "06:00"
     property string rollingMaxX :"07:00"
@@ -79,36 +79,54 @@ App {
 	property bool 	enableSleep : false
 	property bool 	debugOutput : false	// Show console messages. Turn on in settings file !
 	property bool 	enablePolling : true
-	
 	property string configMsgUuid : ""
 	property string popupString : "SolarPanel instellen en herstarten als nodig" + "..."
 	property string pluginWarning : "Selecteer Inverter"
-
-	
 	property variant fiveminuteValues: []
 	property variant rollingfiveminuteValues:[]
-	
 	property variant fiveminuteValuesProd: []
 	property variant rollingfiveminuteValuesProd:[]
-	
 	property variant lastFiveDays: []
-	
 	property string selectedInverter: ""
 	property string onlinePluginFileName:""
-	
+	property string selectedInverter2: ""
+	property string onlinePluginFileName2:""
+	property int inverterCount : 1
+	property int getDataCount : 0
+	property int getDataStepper : 1
+	property bool stepRunning : false
+	property int inverter1CurrentPower
+	property int inverter1Day
+	property int inverter1Total
 	property string passWord : ""
 	property string userName : ""
 	property string siteID : ""
 	property string apiKey : ""
     property string urlString : ""
+	property string idx : ""
+	property string passWord2 : ""
+	property string userName2 : ""
+	property string siteID2 : ""
+	property string apiKey2 : ""
+    property string urlString2 : ""
+	property string idx2 : ""
 	
 	property variant solarpanelSettingsJson : {
+			'inverterCount': "1",
 			'selectedInverter': "",
 			'passWord' : "",
 			'userName' : "",
 			'apiKey' : "",
 			'siteID' : "",
 			'urlString' : "",
+			'idx' : "",
+			'selectedInverter2': "",
+			'passWord2' : "",
+			'userName2' : "",
+			'apiKey2' : "",
+			'siteID2' : "",
+			'urlString2' : "",
+			'idx2' : "",
 			'enableSleep' : "",
 			'enablePolling' : "",
 			'DebugOn': ""
@@ -134,7 +152,7 @@ App {
 	FileIO {id: solarPanel_lastWrite;	source: "file:///mnt/data/tsc/appData/solarPanel_lastWrite.txt"}
 	FileIO {id: solarPanel_lastFiveDays;	source: "file:///mnt/data/tsc/appData/solarPanel_lastFiveDays.txt"}
 	FileIO {id: pluginFile;	source: "SolarObjectPlugin.js"}
-
+	FileIO {id: pluginFile2;source: "SolarObjectPlugin2.js"}
 		
 	Component.onCompleted: { 
 	
@@ -147,7 +165,6 @@ App {
 		
 		currentPower = 0
 
-	
 		//get the user settings from the system file
 		try {
 			solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
@@ -163,7 +180,6 @@ App {
 		} catch(e) {
 		}
 		
-		//check if plugin matches the selectedinverter
 		//must be a seperate try because this parameter was added later
 		try {
 			solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
@@ -171,17 +187,48 @@ App {
 		} catch(e) {
 		}
 		
+		//must be a seperate try because this parameter was added later
+		try {
+			solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
+			onlinePluginFileName2 = solarpanelSettingsJson['onlinePluginFileName2']
+			idx = solarpanelSettingsJson['idx']
+			selectedInverter2 = solarpanelSettingsJson['selectedInverter2-v2']
+			passWord2 = solarpanelSettingsJson['passWord2']
+			userName2 = solarpanelSettingsJson['userName2']
+			apiKey2 = solarpanelSettingsJson['apiKey2']
+			siteID2 = solarpanelSettingsJson['siteID2']
+			urlString2 = solarpanelSettingsJson['urlString2']
+			idx2 = solarpanelSettingsJson['idx2']
+			onlinePluginFileName2 = solarpanelSettingsJson['onlinePluginFileName2']
+			inverterCount = parseInt(solarpanelSettingsJson['inverterCount'])
+		} catch(e) {
+		}
+		
+		//check if plugin matches the selectedinverter
 		var pluginFileString = pluginFile.read()
 		if (debugOutput) console.log("*********SolarPanel pluginFile.read() : " + pluginFile.read())
 		if (debugOutput) console.log("*********SolarPanel onlinePluginFileName : " + onlinePluginFileName)
 		if (pluginFileString.indexOf(onlinePluginFileName)<0 || selectedInverter==""  || onlinePluginFileName =="" ){//wrong plugin
 			if (debugOutput) console.log("*********SolarPanel wrong plugin : ")
 			if (debugOutput) console.log("*********SolarPanel has wrong plugin when first started")
-			pluginWarning = "Selecteer Inverter"
+			pluginWarning = "Selecteer Inverter (1)"
 		}else{
 			pluginWarning = ""
 		}
 
+		if (inverterCount>1){
+			var pluginFileString2 = pluginFile2.read()
+			if (debugOutput) console.log("*********SolarPanel pluginFile2.read() : " + pluginFile2.read())
+			if (debugOutput) console.log("*********SolarPanel onlinePluginFileName2 : " + onlinePluginFileName2)
+			if (pluginFileString2.indexOf(onlinePluginFileName2)<0 || selectedInverter2==""  || onlinePluginFileName2 =="" ){//wrong plugin
+				if (debugOutput) console.log("*********SolarPanel wrong plugin2 : ")
+				if (debugOutput) console.log("*********SolarPanel has wrong plugin2 when first started")
+				pluginWarning = "Selecteer Inverter (2)"
+			}else{
+				pluginWarning = ""
+			}
+		}
+		
 
 		//get the last values from the data file
 		if (debugOutput) console.log("*********SolarPanel trying to resolve old values")
@@ -199,7 +246,6 @@ App {
 				}
 			}
 		if((totalForAvg>0) && (avgcounter >3)) {dayAvgValue = parseInt(totalForAvg/avgcounter)} //calculate the avg for at least 3 days
-		if (debugOutput) console.log("*********SolarPanel dayAvgValue : " + dayAvgValue)
 		
 
 		var todaydate = new Date()
@@ -241,7 +287,7 @@ App {
 		
 		try {var lastWriteDate = (solarPanel_lastWrite.read()).toString().trim() } catch(e) {}
 		
-		console.log("*********SolarPanel starting to load lastwrite timestamp file: "  + lastWriteDate)
+		if (debugOutput) console.log("*********SolarPanel starting to load lastwrite timestamp file: "  + lastWriteDate)
 		if (lastWriteDate.length > 2 ){			
 			if (debugOutput) console.log("*********SolarPanel todayFDate:" + todayFDate)
 			if (debugOutput) console.log("*********SolarPanel lastWriteDate:" + lastWriteDate)
@@ -329,48 +375,69 @@ App {
 ///////////////////////////////////////////////////////////////// GET DATA //////////////////////////////////////////////////////////////////////////////	
 
 	function getData(){
-		Solar.getSolarData(passWord,userName,apiKey,siteID,urlString, parseInt(totalValue))
-		if (debugOutput) console.log("*********SolarPanel send request to Plugin")
-    }
-
-	function parseReturnData(v0,v1,v2,v3,v4,v5,v6,v7,v8){
-		if (debugOutput) console.log("*********SolarPanel got data from Plugin returnString: " + v8)
-		if (v8 == "succes"){
-			succesTime = Qt.formatDateTime(dateTimeNow,"ddd d-M  hh:mm")
-			currentPower = v0
-
-			if (typeof v1 == 'undefined' || typeof v1 == 'null' || v1 == null || v1 == 0 || isNaN(v2)){	
-				if (debugOutput) console.log("*********SolarPanel totalValue from API is not valid")
-			}else{ // de api geeft een waarde uit voor het dagtotaal
-				if (debugOutput) console.log("*********SolarPanel totalValue vanuit API: " + v1)
-				totalValue = v1
-			}
-			
-			if (debugOutput) console.log("*********SolarPanel todayValue vanuit v2: " + v2)
-			if (typeof v2 == 'undefined' || typeof v2 == 'null' || v2 == null || isNaN(v2)){
-				if (debugOutput) console.log("*********SolarPanel todayValue from API is not valid, calculating todayValue from yesterday")
-				todayValue = parseFloat(totalValue - yesterdayTotal)
-			}else{ // de api geeft een waarde uit voor het dagtotaal
-				if (debugOutput) console.log("*********SolarPanel todayValue vanuit API: " + v2)
-				todayValue = v2
-			}
-			
-			if (debugOutput) console.log("*********SolarPanel dtime: " + dtime)
-			if (debugOutput) console.log("*********SolarPanel statuscode:" + v7)
-			if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
-			if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
-			if (debugOutput) console.log("*********SolarPanel yesterdayTotal: " + yesterdayTotal)
-			if (debugOutput) console.log("*********SolarPanel totalValue: " + totalValue)
-
-			doData()
+		if (getDataCount == 0){
+			inverter1CurrentPower = 0
+			inverter1Day = 0
+			inverter1Total = 0
+			Solar.getSolarData(passWord,userName,apiKey,siteID,urlString, parseInt(totalValue))
 		}
-		if (v8 == "error"){
-			currentPower = 0					
-			doData()
+		if (getDataCount == 1){
+			Solar2.getSolarData(passWord2,userName2,apiKey2,siteID2,urlString2, parseInt(totalValue))
+		}
+    }
+	
+	function parseReturnData(v0,v1,v2,v3,v4,v5,v6,v7,v8){
+		getDataCount++
+		//first inverter while there must be 2 inverters
+		if (inverterCount == 2 & getDataCount == 1){
+			if (v8 == "succes"){
+				succesTime = Qt.formatDateTime(dateTimeNow,"ddd d-M  hh:mm")
+				inverter1CurrentPower = v0
+				if (typeof v1 == 'undefined' || typeof v1 == 'null' || v1 == null || v1 == 0 || isNaN(v2)){	
+				}else{ // de api geeft een waarde uit voor het totaal
+					inverter1Total = v1
+				}
+				if (typeof v2 == 'undefined' || typeof v2 == 'null' || v2 == null || isNaN(v2)){
+					inverter1Total = parseFloat(totalValue - yesterdayTotal)
+				}else{ // de api geeft een waarde uit voor het dagtotaal
+					inverter1Day = v2
+				}
+			}
+			getData()
+		}
+		//second inverter while there must be 2 inverters or first if there is only one inverter
+		if ((inverterCount == 1 & getDataCount == 1) || (inverterCount == 2 & getDataCount == 2)){
+			if (v8 == "succes"){
+				succesTime = Qt.formatDateTime(dateTimeNow,"ddd d-M  hh:mm")
+				currentPower = parseInt(v0) + inverter1CurrentPower
+
+				if (typeof v1 == 'undefined' || typeof v1 == 'null' || v1 == null || v1 == 0 || isNaN(v2)){	
+				}else{ // de api geeft een waarde uit voor het dagtotaal
+					totalValue = parseInt(v1) + inverter1Total
+				}
+				
+				if (typeof v2 == 'undefined' || typeof v2 == 'null' || v2 == null || isNaN(v2)){
+					todayValue =  + inverter1Day + parseFloat(totalValue - yesterdayTotal)
+				}else{ // de api geeft een waarde uit voor het dagtotaal
+					todayValue = parseInt(v2) + inverter1Day
+				}
+
+				if (debugOutput) console.log("*********SolarPanel dtime: " + dtime)
+				if (debugOutput) console.log("*********SolarPanel statuscode:" + v7)
+				if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
+				if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
+				if (debugOutput) console.log("*********SolarPanel yesterdayTotal: " + yesterdayTotal)
+				if (debugOutput) console.log("*********SolarPanel totalValue: " + totalValue)
+				doData()
+			}
+			if (v8 == "error"){
+				currentPower = inverter1CurrentPower
+				totalValue = inverter1Total
+				todayValue = inverter1Day				
+				doData()
+			}
 		}
 	}
-
-
 
     function randomNumber(from, to) {
 		return Math.floor(Math.random() * (to - from + 1) + from);
@@ -655,6 +722,7 @@ App {
 				
 				if(enablePolling){			
 					requestRRDData()
+					getDataCount = 0
 					getData()
 				}
 			}
@@ -665,11 +733,21 @@ App {
 
    	function saveSettings() {
 	
+		console.log("*********SolarPanel inverterCount  " + inverterCount)
 		console.log("*********SolarPanel passWord  " + passWord)
 		console.log("*********SolarPanel userName  " + userName)
 		console.log("*********SolarPanel apiKey  " + apiKey)
 		console.log("*********SolarPanel siteID  " + siteID)
 		console.log("*********SolarPanel urlString  " + urlString)
+		console.log("*********SolarPanel idx  " + idx)
+		
+		console.log("*********SolarPanel passWord2  " + passWord2)
+		console.log("*********SolarPanel userName2 " + userName2)
+		console.log("*********SolarPanel apiKey2  " + apiKey2)
+		console.log("*********SolarPanel siteID2  " + siteID2)
+		console.log("*********SolarPanel urlString2  " + urlString2)
+		console.log("*********SolarPanel idx2  " + idx2)
+
 
 		if (debugOutput) console.log("*********SolarPanel Savedata Started" )
 		var tmpDebugOn = ""
@@ -679,13 +757,23 @@ App {
 		var tmpenablePolling = ""
 		if (enablePolling == true) {tmpenablePolling = "Yes";} else {tmpenablePolling = "No";	}
 		var setJson = {
+			"inverterCount" 	: inverterCount,
 			"selectedInverter-v2" 	: selectedInverter,
 			"passWord" : passWord,
 			"userName" : userName,
 			"apiKey" : apiKey,
 			"siteID" : siteID,
 			"urlString" : urlString,
+			"idx" : idx,
 			"onlinePluginFileName" : onlinePluginFileName,
+			"selectedInverter2-v2" 	: selectedInverter2,
+			"passWord2" : passWord2,
+			"userName2" : userName2,
+			"apiKey2" : apiKey2,
+			"siteID2" : siteID2,
+			"urlString2" : urlString2,
+			"idx2" : idx2,
+			"onlinePluginFileName2" : onlinePluginFileName2,
 			"enableSleep" : tmpenableSleep,
 			"enablePolling" : tmpenablePolling,
 			"DebugOn": tmpDebugOn

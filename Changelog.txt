@@ -1,3 +1,11 @@
+1.3.1
+-changed loading of config so that the old config will be loaded without errors
+
+1.3.0
+- made the inverterselection double
+- added idx for domoticz plugin
+- complete new setup for configscreen
+
 1.2.0
 - first production release
 
