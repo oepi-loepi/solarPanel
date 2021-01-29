@@ -12,6 +12,7 @@ Screen {
 	property variant filenameArray: []
 	property variant dataStringArray: []
 	property variant inputDataType: []
+	property variant info: []
 	
 	property bool isDemoMode : false
 	
@@ -31,7 +32,7 @@ Screen {
 	property string fieldText4 : "API Key:"
 	property string fieldText5 : "URL like \"192.168.10.5\":"
 	property string fieldText6 : "IDX:"
-	
+
 	property string pluginFile2: ""
 	property string fieldText21 : "Wachtwoord :"
 	property string fieldText22 : "Gebruikersnaam :"
@@ -40,7 +41,6 @@ Screen {
 	property string fieldText25 : "URL like \"192.168.10.5\":"
 	property string fieldText26 : "IDX:"
 	
-	
 	property bool field1visible : false
 	property bool field2visible : false
 	property bool field3visible : false
@@ -48,12 +48,14 @@ Screen {
 	property bool field5visible : false
 	property bool field6visible : false
 	
+	
 	property bool field1visible2 : false
 	property bool field2visible2 : false
 	property bool field3visible2 : false
 	property bool field4visible2 : false
 	property bool field5visible2 : false
 	property bool field6visible2 : false
+	
 	
 	property string tempPassWord : app.passWord
 	property string tempUserName: app.userName
@@ -182,6 +184,7 @@ Screen {
 						var invertersArray = JsonObject.plugins
 						numberofItems =  invertersArray.length
 						for (var i in invertersArray){
+							info[i] = invertersArray[i].info
 							invertersNameArray[i] = invertersArray[i].friendlyName
 							filenameArray[i] = invertersArray[i].filename
 							inputDataType[i] = invertersArray[i].data
@@ -207,7 +210,7 @@ Screen {
 /////////////////////////////////////////////////////// AFTER INVERTERS ARE FETCHED FROM THE INTERNET ///////////////////////////////////////////////
 
 	function resumefromHttpRequest(){
-	console.log("*********SolarPanel gselectedInverter : " + selectedInverter)
+		console.log("*********SolarPanel gselectedInverter : " + selectedInverter)
 		enableSleepToggle.isSwitchedOn = app.enableSleep
 		addCustomTopRightButton("Opslaan")
 		fillInverters()
@@ -217,7 +220,7 @@ Screen {
 			tempApiKey2 = app.apiKey2 
 			tempSiteID2= app.siteID2
 			tempURL2 = app.urlString2
-			tempIDX2 = app.apiKey2 
+			tempIDX2 = app.apiKey2
 			setFieldText2()
 		}
 		tempPassWord = app.passWord
@@ -253,6 +256,7 @@ Screen {
 		field4visible2 = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('api')>-1)
 		field5visible2 = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('url')>-1)
 		field6visible2 = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('idx')>-1)
+		field7visible2 = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('info')>-1)
 	}
 
 /////////////////////////////////////////////////////// SAVE DATA TO TEMPS WHEN SAVE IS CLICKED ON AN INPUTFIELD ///////////////////////////////////////////////
@@ -797,7 +801,7 @@ Screen {
 			pixelSize: isNxt ? 18:14
 		}
 		anchors {
-			top: inverterCountText.top
+			top: mytexttop1.top
 			left:upButton.right
 			leftMargin:isNxt ? 140:112
 		}
@@ -818,19 +822,53 @@ Screen {
 		}
 		visible: (selectedInverter.length>2) & !inverterSel2Clicked & inverterSel1Clicked
 	}
-
+	
+	Text {
+		id: infoText1
+		text: "info"
+		font {
+			family: qfont.semiBold.name
+			pixelSize: isNxt ? 18:14
+		}
+		anchors {
+			top: mytext1.bottom
+			topMargin: isNxt ? 10:8
+			left: mytext1.left
+		}
+		visible: selectedInverter.length>2 && info[listview1.currentIndex].length>2
+	}
+	
+	Text {
+		id: infoText2
+		width: parent.width/2
+		wrapMode: Text.WordWrap
+		text:info[listview1.currentIndex]
+		font {
+			family: qfont.semiBold.name
+			pixelSize: isNxt ? 18:14
+		}
+		anchors {
+			top: infoText1.bottom
+			left: mytext1.left
+		}
+		visible:  selectedInverter.length>2
+	}	
+	
+	
 	Grid {
 		id: gridContainer1
 		columns: 1
 		spacing: 2
 		visible: (selectedInverter.length>2) & !inverterSel2Clicked & inverterSel1Clicked
 		anchors {
-			top: mytexttop2.top
+			top: infoText2.bottom
+			topMargin: isNxt ? 10:8
 			left : mytext1.left
 		}
+
 		//username
 		Text {id: inputField2Text;font.pixelSize: isNxt ? 18:14; font.family: qfont.semiBold.name ;text:fieldText2;visible: field2visible}
-		EditTextLabel4421 { 
+		EditTextLabel4421 {  
 			id: inputField2 ; width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32; height: isNxt? 35:28;	leftTextAvailableWidth: isNxt? 100:80; 
 			leftText: "";	visible: (inputField2Text.visible);	onClicked: {qkeyboard.open(fieldText2, inputField2.inputText, saveFieldData2)}
 		}
@@ -972,7 +1010,7 @@ Screen {
 			top: gridContainer1.top
 			left : gridContainer1.left
 
-		}
+		}		
 		//username
 		Text {id: inputField2Text2;font.pixelSize: isNxt ? 18:14; font.family: qfont.semiBold.name ;text:fieldText22;visible: field2visible2}
 		EditTextLabel4421 { 
@@ -1009,6 +1047,7 @@ Screen {
 			id: inputField26 ; width: isNxt?  parent.width - mytext12.left - 40 : parent.width - mytext12.left - 32; height: isNxt? 35:28;	leftTextAvailableWidth: isNxt? 100:80; 
 			leftText: "";visible: (inputField6Text2.visible);onClicked: {qkeyboard.open(fieldText26, inputField26.inputText, saveFieldData26)}
 		}
+		
 	}
 
 	Grid {
@@ -1336,7 +1375,7 @@ Screen {
 			
 			
 			case 8: {
-				if (app.selectedInverter2 != selectedInverter2  || wrongPlugin2){
+				if ((app.selectedInverter2 != selectedInverter2  || wrongPlugin2) & tempInverterCount>1){
 					needRestart = true
 					console.log("*********SolarPanel downloading new inverter plugin")
 					console.log("*********SolarPanel downloading new inverter plugin : " + pluginUrl + onlinePluginFileName2+ ".plugin.txt")
@@ -1364,19 +1403,27 @@ Screen {
 				}
 				else{
 					console.log("*********SolarPanel inverter plugin 2 does not have to change")
-					app.popupString = "Omvormer 2 niet gewijzigd" + "..." 
+					if (tempInverterCount>1){
+						app.popupString = "Omvormer 2 niet gewijzigd" + "..." 
+					}else{
+						app.popupString = "Omvormer 2 niet geselecteerd" + "..." 
+					}
 				}
 				break;
 			}
 			
 			
 			case 9: {
-				if (updated2 || wrongPlugin2){
+				if ((updated2 || wrongPlugin2) & tempInverterCount>1){
 					needRestart = true
 					app.popupString = "Plugin 2 was geupdate voor " + selectedInverter2 + "..." 
 				}
 				else{
-					app.popupString = "Plugin 2 was niet geupdate voor " + selectedInverter2 + "..." 
+					if (tempInverterCount>1){
+						app.popupString = "Plugin 2 was niet geupdate voor " + selectedInverter2 + "..." 
+					}else{
+						app.popupString = "Omvormer 2 niet geselecteerd" + "..." 
+					}
 				}
 				break;
 			}

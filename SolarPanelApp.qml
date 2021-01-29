@@ -49,7 +49,11 @@ App {
 	property int 	dayAvgValue : 1000
 	property int 	yesterdayTotal : 0
 	property int 	lastHourValue : 0
-
+	
+	property url 	weatherprovider : "https://data.buienradar.nl/2.0/feed/json"
+	property int    sunrisePerc : 0
+	property int	sunsetPerc : 0
+	
 	property string currentPowerProd : "0"
 	property string currentUsage : "0"
     property string dtime : "0"
@@ -481,6 +485,7 @@ App {
 /////////////////////////////////////////Each time data was received      /////////////////////////////////////////////////////////////////////////////////
 	
 	function doEachtimeStuff(){
+				
 		//load current 5 minutes into the array for the 5 minute graph
 		var newArray = []
 		newArray = fiveminuteValues
@@ -683,6 +688,34 @@ App {
 		if (debugOutput) console.log("*********SolarPanel url4 : " + url4)
 		http4.open("GET", url4, true)
         http4.send()
+		
+		
+		//get sunrise and sunset
+		var http = new XMLHttpRequest()	
+		http.open("GET", weatherprovider, true)
+		http.onreadystatechange = function() {
+			if (http.readyState == XMLHttpRequest.DONE) {
+				if (http.status == 200) {
+					var JsonString = http.responseText
+					var JsonObject= JSON.parse(JsonString)
+					var suntime = new Date(JsonObject.actual.sunrise)
+					console.log("*********SolarPanel suntime : " + suntime)	
+					var sunhrs = parseInt(Qt.formatDateTime(suntime,"hh"))
+					var sunmins = parseInt(Qt.formatDateTime(suntime,"mm"))
+					var sunminsfromfive = ((sunhrs-5)*60) + sunmins
+					sunrisePerc  = parseInt(100*sunminsfromfive/(18*60))
+					suntime = new Date(JsonObject.actual.sunset)
+					console.log("*********SolarPanel suntime : " + suntime)	
+					sunhrs = parseInt(Qt.formatDateTime(suntime,"hh"))
+					sunmins = parseInt(Qt.formatDateTime(suntime,"mm"))
+					sunminsfromfive = ((sunhrs-5)*60) + sunmins
+					sunsetPerc  = parseInt(100*sunminsfromfive/(18*60))
+				}
+			}
+		}
+        http.send()
+
+		
 	}
 
 	

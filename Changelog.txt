@@ -1,3 +1,9 @@
+1.3.2
+- removed plugin check of inverter 2 when only one inverter is selected
+- extra info text into inverter json file and configscreen
+- sunrise and sunset added into dayscreen as vertical bars (will be screped from buienradar at 01:00)
+- changer order of areagraph  while painting
+
 1.3.1
 -changed loading of config so that the old config will be loaded without errors
 
