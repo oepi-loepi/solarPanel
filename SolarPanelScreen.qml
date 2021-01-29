@@ -115,7 +115,11 @@ Screen {
 		barColor2 : "green"
 		dataValues2: app.fiveminuteValuesProd
 		visible: (app.pluginWarning.length <1)
-
+		
+		showSunbars : true
+		sunBarColor : "purple"
+		sunrisePerc  : app.sunrisePerc
+		sunsetPerc  : app.sunsetPerc
 	}
 	
 	Rectangle{

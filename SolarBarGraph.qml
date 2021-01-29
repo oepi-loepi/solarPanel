@@ -51,6 +51,12 @@ Item {
 	property bool   showSpecialBar2 : false
 	property string barColor2 : "purple"
 	
+	property bool   showSunbars : false
+	property string sunBarColor : "purple"
+	property int   	sunrisePerc  : 0
+	property int   	sunsetPerc  : 0
+
+	
 	property variant dataValues2: []
 	
 	
@@ -441,4 +447,58 @@ Item {
         cursorShape: Qt.PointingHandCursor
     }
 
+	
+	Rectangle {
+		id: sunriseBar
+		color: sunBarColor
+		height: barGraphRect.height - 40
+		width: 3
+		anchors {
+			bottom: barGraphRect.bottom
+			left: barGraphRect.left
+			leftMargin : (sunrisePerc/100)*barGraphRect.width
+		}
+		visible: showSunbars & sunrisePerc>1
+	}
+
+	Text{
+		id: sunriseText
+		color: sunBarColor
+		font.pixelSize: valueSize
+		font.family: valueFont
+		text: "zon op"
+		anchors {
+			bottom: sunriseBar.top
+			horizontalCenter: sunriseBar.horizontalCenter
+		}
+		visible: sunriseBar.visible
+	}
+
+	
+	Rectangle {
+		id: sunsetBar
+		color: sunBarColor
+		height: barGraphRect.height - 40
+		width: 3
+		anchors {
+			bottom: barGraphRect.bottom
+			left: barGraphRect.left
+			leftMargin : (sunsetPerc/100)*barGraphRect.width
+		}
+		visible: showSunbars & sunsetPerc>1
+	}
+	
+	Text{
+		id: sunsetText
+		color: sunBarColor
+		font.pixelSize: valueSize
+		font.family: valueFont
+		text: "zon onder"
+		anchors {
+			bottom: sunsetBar.top
+			horizontalCenter: sunsetBar.horizontalCenter
+		}
+		visible: sunsetBar.visible
+	}
+	
 }
