@@ -69,9 +69,9 @@ Tile {
 		showLevels  : true
 		showValuesOnLevel : true
 		dataValues: app.rollingfiveminuteValues
-		onClicked: {
-			stage.openFullscreen(app.solarPanelScreenUrl)
-		}
+//		onClicked: {
+//			stage.openFullscreen(app.solarPanelScreenUrl)
+//		}
 		visible: (app.enableSleep||!dimState ) & (app.pluginWarning.length <1)
 	}
 
