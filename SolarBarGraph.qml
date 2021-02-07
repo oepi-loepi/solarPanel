@@ -349,42 +349,7 @@ Item {
 		}
 	}
 
-	Item {
-		id: brgraphItem
-		anchors.bottom: barGraphRect.bottom
-		anchors.left: barGraphRect.left
-		width: barGraphRect.width
-		height: barGraphRect.height
-		AreaGraphControl {
-			id: areaGraph
-			width: parent.width
-			height: parent.height
-			color: barColor
-			yScale: height /maxFormatted
-			showNaN: false
-			values: dataValues
-		}
-		visible: isAreaGraph
-	}
-	
-	
-	Item {
-		id: brgraphItem2
-		anchors.bottom: barGraphRect.bottom
-		anchors.left: barGraphRect.left
-		width: barGraphRect.width
-		height: barGraphRect.height
-		AreaGraphControl {
-			id: areaGraph2
-			width: parent.width
-			height: parent.height
-			color: barColor2
-			yScale: height /maxFormatted
-			showNaN: false
-			values: dataValues2
-		}
-		visible: isAreaGraph & isStacked
-	}
+
 	
 	Row {
 		id: barHourGraph
@@ -437,6 +402,43 @@ Item {
 			}
 		}
 		visible: isAreaGraph
+	}
+	
+	Item {
+		id: brgraphItem
+		anchors.bottom: barGraphRect.bottom
+		anchors.left: barGraphRect.left
+		width: barGraphRect.width
+		height: barGraphRect.height
+		AreaGraphControl {
+			id: areaGraph
+			width: parent.width
+			height: parent.height
+			color: barColor
+			yScale: height /maxFormatted
+			showNaN: false
+			values: dataValues
+		}
+		visible: isAreaGraph
+	}
+	
+	
+	Item {
+		id: brgraphItem2
+		anchors.bottom: barGraphRect.bottom
+		anchors.left: barGraphRect.left
+		width: barGraphRect.width
+		height: barGraphRect.height
+		AreaGraphControl {
+			id: areaGraph2
+			width: parent.width
+			height: parent.height
+			color: barColor2
+			yScale: height /maxFormatted
+			showNaN: false
+			values: dataValues2
+		}
+		visible: isAreaGraph & isStacked
 	}
 	
     MouseArea {

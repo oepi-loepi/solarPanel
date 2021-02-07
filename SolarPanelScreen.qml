@@ -28,8 +28,8 @@ Screen {
 	}
 	
 	Text{
-		id: panelText
-		text:  "Omvormer: " + app.selectedInverter + "   Huidig: " + app.currentPower + " Watt   Vandaag: " +  parseFloat(app.todayValue/1000).toFixed(1) + " kWh   Totaal: " +  parseInt(app.totalValue/1000) + " kWh"
+		id: inverterText
+		text:  (app.inverterCount>1)? "Omvormer 1: " + app.selectedInverter +   "   Omvormer 2: " + app.selectedInverter2 : "Omvormer: " + app.selectedInverter
 		font.pixelSize: isNxt? 20:16
 		font.family:  qfont.bold.name
 		anchors {
@@ -37,9 +37,25 @@ Screen {
 			top: dateText.bottom
 			topMargin: isNxt? 10:8
         }
-		color : (app.pluginWarning.length <1)? "grey" : "red"
+		color : "grey"
 		visible : app.pluginWarning.length <1
 	}
+
+	Text{
+		id: panelText
+		text:  "Huidig: " + app.currentPower + " Watt   Vandaag: " +  parseFloat(app.todayValue/1000).toFixed(1) + " kWh   Totaal: " +  parseInt(app.totalValue/1000) + " kWh"
+		font.pixelSize: isNxt? 20:16
+		font.family:  qfont.bold.name
+		anchors {
+            	horizontalCenter: parent.horizontalCenter
+			top: inverterText.bottom
+			topMargin: isNxt? 6:5
+        }
+		color :  "grey" 
+		visible : app.pluginWarning.length <1
+	}
+
+
 	
 	Text{
 		id: panelWarningText1
