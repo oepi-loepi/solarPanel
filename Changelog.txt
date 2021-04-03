@@ -1,3 +1,7 @@
+1.3.4
+-	dimcolors of tile 2 changed
+-	minor change because of DST change (summertime)
+
 1.3.3
 - text changed in screen when 2 inverters are selected
 - also setting sunrise and sunset when reboot

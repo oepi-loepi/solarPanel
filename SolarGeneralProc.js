@@ -270,10 +270,13 @@
 		
 	function push10yrdaysData(){
 		//push quantity into the 10yrdays RRA data
-		//produced this day so it must be in the RRA of tomorrow 00:00
+		//produced this day so it must be in the RRA of tomorrow 00:00 + offset
 		var tomorrow = new Date()
+		var offset = (-1*tomorrow.getTimezoneOffset())/60
 		tomorrow.setDate(tomorrow.getDate() + 1)
-		tomorrow.setHours(1,0,0,0)  //to make it UTC
+
+		if (debugOutput) console.log("*********SolarPanel tomorrow offset: " +  offset)
+		tomorrow.setHours(offset,0,0,0)  //to make it UTC
 		if (debugOutput) console.log("*********SolarPanel tomorrow : " +  tomorrow.toString())
 		if (debugOutput) console.log("*********SolarPanel tomorrow unixTime : " + parseInt(tomorrow.getTime()/1000))
 		var http4 = new XMLHttpRequest()	

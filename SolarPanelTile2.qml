@@ -31,7 +31,7 @@ Tile {
 			family: qfont.regular.name
 			pixelSize: qfont.tileTitle
 		}
-		color: dimmableColors.tileTitleColor
+		color: !dimState? "black" : "white"
 		text: (app.pluginWarning.length <1)? (app.inverterCount<2)? "SolarPanel: " + app.selectedInverter: "Totaal Solar" : app.pluginWarning
 	}
 
@@ -68,7 +68,7 @@ Tile {
 	Text {
 		id: curProdPower
 		text: (app.pluginWarning.length <1)? "Lev.: " + app.currentPowerProd + " W" : ""
-		color: !dimState ? "black" : "white"
+		color: !dimState? "black" : "white"
 		anchors {
 			top: dayPower.bottom
 			topMargin: 1
@@ -76,13 +76,12 @@ Tile {
 		}
 		font.pixelSize: isNxt? 22:18
 		font.family: qfont.bold.name
-		visible: (app.enableSleep||!dimState )
     }
 
 	Text {
 		id: curUsagePower
 		text: (app.pluginWarning.length <1)?  "Verbruik: " + app.currentUsage + " W"  : ""
-		color: !dimState ? "black" : "white"
+		color: !dimState? "black" : "white"
 		anchors {
 			top: curProdPower.bottom
 			topMargin: 1
@@ -90,7 +89,6 @@ Tile {
 		}
 		font.pixelSize: isNxt? 22:18
 		font.family: qfont.bold.name
-		visible: (app.enableSleep||!dimState )
     }
 
 
