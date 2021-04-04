@@ -423,8 +423,13 @@ App {
 		//produced this day so it must be in the RRA of thisday 00:00
 		if (parseInt(savedtotalValue) ==0){savedtotalValue = totalValue}
 		var thisday = new Date()
+
+		var offset = (-1*thisday.getTimezoneOffset())/60
+		if (debugOutput) console.log("*********SolarPanel thisday offset: " +  offset)
 		thisday.setDate(thisday.getDate())
-		thisday.setHours(1,0,0,0)  //to make it UTC
+		thisday.setHours(offset,0,0,0)  //to make it UTC
+
+		thisday.setHours(offset,0,0,0)  //to make it UTC
 		if (debugOutput) console.log("*********SolarPanel thisday : " +  thisday.toString())
 		if (debugOutput) console.log("*********SolarPanel thisday unixTime : " + parseInt(thisday.getTime()/1000))
 		if (debugOutput) console.log("*********SolarPanel thisday value : " + parseInt(savedtotalValue)    + " set at " + dtime )
@@ -432,7 +437,7 @@ App {
 		var url4 = "http://localhost/hcb_rrd?action=setRrdData&loggerName=elec_solar_quantity&rra=10yrdays&samples=%7B%22" + parseInt(thisday.getTime()/1000)+ "%22%3A" + parseInt(savedtotalValue) + "%7D"
 		if (debugOutput) console.log("*********SolarPanel url4 : " + url4)
 		http4.open("GET", url4, true)
-        http4.send()
+        	http4.send()
 
 		SolarGeneral.getSunTimes() // get sunrise and sunset
 	}
