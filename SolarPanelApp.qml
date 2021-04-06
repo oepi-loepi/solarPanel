@@ -249,7 +249,7 @@ App {
 			doDailyStuff()
 		}
 		
-		if (dtime>=100 & dtime<=104){ //it is 1 hour after the beginning of a new day
+		if (dtime>=200 & dtime<=204){ //it is 2 hour after the beginning of a new day
 			doDelayedDailyStuff()
 		}
     }
@@ -420,7 +420,7 @@ App {
 
 		//it seems like the day is deleted when the new day is set so we just set the previos day again.
 		//push quantity into the 10yrdays RRA data
-		//produced this day so it must be in the RRA of thisday 00:00
+		//produced this day so it must be in the RRA of thisday 02:00
 		if (parseInt(savedtotalValue) ==0){savedtotalValue = totalValue}
 		var thisday = new Date()
 
