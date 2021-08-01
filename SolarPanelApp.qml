@@ -109,6 +109,11 @@ App {
 	property string apiKey2 : ""
     property string urlString2 : ""
 	property string idx2 : ""
+
+	property bool 	zonneplan : false
+	property string zonneplanUUID: ""
+	property string zonneplanToken: ""
+	property string zonneplanRefreshToken: ""
 	
 	property variant solarpanelSettingsJson : {
 			'inverterCount': "1",
@@ -149,6 +154,7 @@ App {
 	FileIO {id: solarPanel_totalValue;	source: "file:///mnt/data/tsc/appData/solarPanel_totalValue.txt"}
 	FileIO {id: solarPanel_lastWrite;	source: "file:///mnt/data/tsc/appData/solarPanel_lastWrite.txt"}
 	FileIO {id: solarPanel_lastFiveDays;	source: "file:///mnt/data/tsc/appData/solarPanel_lastFiveDays.txt"}
+	FileIO {id: solarPanel_refreshtoken;	source: "file:///mnt/data/tsc/appData/solarPanel_refreshtoken.txt"}
 	FileIO {id: pluginFile;	source: "SolarObjectPlugin.js"}
 	FileIO {id: pluginFile2;source: "SolarObjectPlugin2.js"}
 		
@@ -159,11 +165,14 @@ App {
 		SolarGeneral.checkInvertersOnStart()   	//check if plugin matches the selectedinverter
 		SolarGeneral.getAllSavedData() 			//get data from data/tsc/data  and rrs
 		SolarGeneral.getSunTimes() 				//get sunrise and sunset
+		
+		scrapeTimer.running = true
 	}
 
 ///////////////////////////////////////////////////////////////// GET DATA //////////////////////////////////////////////////////////////////////////////	
 
 	function getData(){
+	
 		if (getDataCount == 0){
 			inverter1CurrentPower = 0
 			inverter1Day = 0
@@ -177,7 +186,7 @@ App {
 	
 	function parseReturnData(v0,v1,v2,v3,v4,v5,v6,v7,v8){
 		getDataCount++
-		//first inverter while there must be 2 inverters
+
 		if (inverterCount == 2 & getDataCount == 1){
 			if (v8 == "succes"){
 				succesTime = Qt.formatDateTime(dateTimeNow,"ddd d-M  hh:mm")
@@ -222,7 +231,7 @@ App {
 			if (v8 == "error"){
 				currentPower = inverter1CurrentPower
 				totalValue = inverter1Total
-				todayValue = inverter1Day				
+				todayValue = inverter1Day
 				doData()
 			}
 		}
@@ -457,12 +466,12 @@ App {
 
     Timer {//
 		id: scrapeTimer   //interval to get the solar data
-		interval: 300000
+		interval: 30000
 		repeat: true
-		running: true
-		triggeredOnStart: true
+		running: false
+		triggeredOnStart: false
 		onTriggered: {
-		
+			scrapeTimer.interval = 300000
 			dateTimeNow= new Date()
 			dtime = parseInt(Qt.formatDateTime (dateTimeNow,"hh") + "" + Qt.formatDateTime (dateTimeNow,"mm"))
 

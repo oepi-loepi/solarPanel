@@ -2,6 +2,7 @@ import QtQuick 2.1
 import BasicUIControls 1.0
 import qb.components 1.0
 import FileIO 1.0
+import "SolarZonneplanProc.js" as SolarZonneplan
 
 Screen {
 	id: solarPanelConfigScreen
@@ -109,11 +110,15 @@ Screen {
 	
 	property bool debugOutput : app.debugOutput						// Show console messages. Turn on in settings file !
 	
+	property string sendMailText : "mail versturen"
+	property string getPasseText : "Eerst mail versturen"
+	
 
 	FileIO {id: hcb_scsync_Configfile;	source: "file:///mnt/data/qmf/config/config_happ_scsync.xml"}
 	FileIO {id: hcb_scsync_Configfile_bak;	source: "file:///mnt/data/qmf/config/config_happ_scsync.solarpanelbackup"}
 	FileIO {id: hcb_rrd_Configfile;	source: "file:///qmf/config/config_hcb_rrd.xml"}
 	FileIO {id: hcb_rrd_Configfile_bak;	source: "file:///qmf/config/config_hcb_rrd.solarpanelbackup"}
+	FileIO {id: solarPanel_refreshtoken;	source: "file:///mnt/data/tsc/appData/solarPanel_refreshtoken.txt"}
 	FileIO {id: mergeFile1;	source: "solarpanel_merge_prod.txt"}
 	FileIO {id: mergeFile2;	source: "solarpanel_merge_solar.txt"}
 	FileIO {id: pluginFile;	source: "SolarObjectPlugin.js"}
@@ -663,6 +668,12 @@ Screen {
 			inverterSel1Clicked = true
 			inverterSel2Clicked = false
 			selectedInverter = invertersNameArray[listview1.currentIndex]
+			
+			if (selectedInverter == "Zonneplan"){
+				app.zonneplan=true
+			}else{
+			    app.zonneplan=false
+			}
 			if (selectedInverter != listview1.name){
 				setFieldText()
 			}
@@ -671,7 +682,6 @@ Screen {
 			}else{
 				showUpdate = false
 			}
-
 		}
 	}
 	
@@ -701,9 +711,9 @@ Screen {
 				showUpdate2 = false
 			}
 		}
-		visible : (tempInverterCount == 2)
+		visible : (tempInverterCount == 2 & !app.zonneplan)
 	}
-////////////////////////////////////////////// SELECTED ///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////// SELECTED ///////////////////////////////////////////////////////////////////////////////
 	Text {
 		id: showInSleep
 		width:  isNxt? 160:128
@@ -915,6 +925,28 @@ Screen {
 			topMargin: isNxt ? 10:8	
 			left : mytext1.left
 		}
+		
+		NewTextLabel {
+			id: sendMail
+			width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
+			height: isNxt ? 40:32
+			buttonActiveColor: "lightgreen" ; buttonHoverColor: "blue";	enabled : true;	textColor : "black"
+			buttonText:  sendMailText
+			onClicked: SolarZonneplan.sendZonneplanMailRequest(inputField2.inputText)
+			visible:   app.zonneplan
+		}
+		
+		
+		NewTextLabel {
+			id: getPassw
+			width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
+			height: isNxt ? 40:32
+			buttonActiveColor: "lightgreen" ; buttonHoverColor: "blue";	enabled : true;	textColor : "black"
+			buttonText:  getPasseText
+			onClicked: SolarZonneplan.getPassword(inputField2.inputText)
+			visible:   app.zonneplan
+		}
+
 		
 		NewTextLabel {
 			id: updateText

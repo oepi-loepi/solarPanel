@@ -1,3 +1,6 @@
+1.4.0
+-	major chanhge for Zonneplan One inverter. (this inverter needs authorization via email)
+
 1.3.5
 -	minor change because of DST change (summertime)
 
