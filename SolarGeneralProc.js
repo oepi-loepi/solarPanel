@@ -24,7 +24,7 @@
 		} catch(e) {
 		}
 		
-				//must be a seperate try because this parameter was added later
+		//must be a seperate try because this parameter was added later
 		try {
 			solarpanelSettingsJson = JSON.parse(solarpanelSettingsFile.read())
 			onlinePluginFileName2 = solarpanelSettingsJson['onlinePluginFileName2']
@@ -41,6 +41,12 @@
 		} catch(e) {
 		}
 		
+		if (selectedInverter == "Zonneplan"){
+			zonneplan=true
+			getZonneplanRefreshToken()
+		}else{
+			zonneplan=false
+		}
 	}
 ///////////////////////////////////////// SAVE ALL TO SETTINGS ///////////////////////////////////////////////////////////////////////////////////////////////// 
 
@@ -284,5 +290,52 @@
 		if (debugOutput) console.log("*********SolarPanel url4 : " + url4)
 		http4.open("GET", url4, true)
 		http4.send()
-	}		
+	}
+	
+	
+	function getZonneplanRefreshToken(){
+
+		if (debugOutput) console.log("*********SolarPanel Start getZonneplanRefreshToken()")
+		
+		var http = new XMLHttpRequest()
+		var url = "https://app-api.zonneplan.nl/oauth/token"
+		var rfToken = ""
+		try{
+			rfToken = (solarPanel_refreshtoken.read()).trim()
+		}catch(e) {
+		}
+		if (debugOutput) console.log("*********SolarPanel refreshtoken " + rfToken)
+		var params = "{\"grant_type\": \"refresh_token\",\"refresh_token\": \"" + rfToken + "\"}"
+		if (debugOutput) console.log("*********SolarPanel url " + url)
+		if (debugOutput) console.log("*********SolarPanel params : " + params)
+		http.open("POST", url, true);
+		http.setRequestHeader("content-type", "application/json;charset=utf-8");
+		http.setRequestHeader("x-app-version","2.1.1");
+		http.withCredentials = true;
+		http.onreadystatechange = function() { // Call a function when the state changes.
+			if (debugOutput) console.log("*********SolarPanel refreshtoken readyState" + http.readyState)
+			if (http.readyState === 4) {
+				if (http.status === 200) {
+					if (debugOutput) console.log("*********SolarPanel http.responseText " + http.responseText)
+					var JsonString = http.responseText
+					var JsonObject= JSON.parse(JsonString)
+					zonneplanToken = JsonObject.access_token
+					zonneplanRefreshToken = JsonObject.refresh_token
+					if (debugOutput) console.log("*********SolarPanel token : " + zonneplanToken)
+					if (debugOutput) console.log("*********SolarPanel RefreshToken : " + zonneplanRefreshToken)
+					if (debugOutput) console.log("*********SolarPanel save refreshtoken" )
+					solarPanel_refreshtoken.write(zonneplanRefreshToken)
+					scrapeTimer.interval = 20000
+				} else {
+					if (debugOutput) console.log("*********SolarPanel refreshtoken http.status error " + http.status)
+				}
+			}
+		}
+		http.send(params);
+	}
+	
+
+	
+
+		
 	
