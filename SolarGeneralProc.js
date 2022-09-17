@@ -239,6 +239,8 @@
 							var JsonObject= JSON.parse(JsonString)
 							currentPowerProd = parseInt(JsonObject.powerProduction.value)
 							currentUsage = parseInt(JsonObject.powerUsage.value)
+							powerAvgValue = parseInt(JsonObject.powerUsage.avgValue)
+							if (powerAvgValue ==0 ){powerAvgValue =1000}
 							if (debugOutput) console.log("*********SolarPanel currentUsage" + currentUsage)
 							if (debugOutput) console.log("*********SolarPanel currentPowerProd" + currentPowerProd)
 						} else {
