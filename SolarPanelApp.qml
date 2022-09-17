@@ -19,6 +19,7 @@ App {
 	property url 	tileUrl : "SolarPanelTile.qml"
 	property url 	tileUrl2 : "SolarPanelTile2.qml"
 	property url 	tileUrl3 : "SolarPanelTile3.qml"
+	property url 	tileUrl5 : "SolarPanelTile5.qml"
 	property url 	thumbnailIcon1: "qrc:/tsc/solarPanel_graph1.png"
 	property url 	thumbnailIcon2: "qrc:/tsc/solarPanel_txt.png"
 	property url 	thumbnailIcon3: "qrc:/tsc/solarPanel_rolling.png"
@@ -42,6 +43,8 @@ App {
 	property string currentPower : "0"
 	property int 	todayValue : 0
 	property int 	dayAvgValue : 1000
+	property int 	powerAvgValue : 1000
+
 	property int 	yesterdayTotal : 0
 	property int 	lastHourValue : 0
 	
@@ -140,6 +143,7 @@ App {
 		registry.registerWidget("tile", tileUrl, this, null, {thumbLabel: qsTr("Solar Vandaag"), thumbIcon: thumbnailIcon1, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", tileUrl2, this, null, {thumbLabel: qsTr("Solar Panel"), thumbIcon: thumbnailIcon2, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", tileUrl3, this, null, {thumbLabel: qsTr("Solar 2 uur"), thumbIcon: thumbnailIcon3, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
+		registry.registerWidget("tile", tileUrl5, this, null, {thumbLabel: qsTr("Eigen verbruik"), thumbIcon: thumbnailIcon2, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});			
 		registry.registerWidget("tile", solarThisMomentTileUrl, this, null,  {thumbLabel: qsTr("Solar Nu"), thumbIcon:  thumbnailIcon4, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", graph2SolarHourTileUrl, this, null,  {thumbLabel: qsTr("Solar 2 uur"), thumbIcon:  thumbnailIcon5, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", solarGenerationTodayTileUrl, this, null,  {thumbLabel: qsTr("Solar Vandaag"), thumbIcon:  thumbnailIcon6, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});

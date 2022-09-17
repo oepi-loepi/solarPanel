@@ -1,3 +1,6 @@
+1.4.1
+-	extra tile added : own use
+
 1.4.0
 -	major chanhge for Zonneplan One inverter. (this inverter needs authorization via email)
 
