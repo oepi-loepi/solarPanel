@@ -161,6 +161,7 @@ App {
 	FileIO {id: solarPanel_refreshtoken;	source: "file:///mnt/data/tsc/appData/solarPanel_refreshtoken.txt"}
 	FileIO {id: pluginFile;	source: "SolarObjectPlugin.js"}
 	FileIO {id: pluginFile2;source: "SolarObjectPlugin2.js"}
+	FileIO {id: solar_mobile;	source: "file:///qmf/www/solar.html"}
 		
 	Component.onCompleted: { 
 		currentPower = 0
@@ -271,6 +272,8 @@ App {
 /////////////////////////////////////////Each time data was received      /////////////////////////////////////////////////////////////////////////////////
 	
 	function doEachtimeStuff(){
+		var ownusage = (parseInt(parseInt(app.currentPower) + parseInt(app.currentUsage) - parseInt(app.currentPowerProd)))
+		solar_mobile.write("{\"result\":\"ok\",\"solar\": {\"current\":" + currentPower + ", \"total\":" + totalValue + ", \"today\":" + todayValue + ", \"production\":" + currentPowerProd + ", \"usage_net\":" + currentUsage + ", \"usage_own\":" + ownusage + "}}")
 				
 		//load current 5 minutes into the array for the 5 minute graph
 		var newArray = []
