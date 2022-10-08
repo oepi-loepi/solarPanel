@@ -272,7 +272,7 @@ App {
 /////////////////////////////////////////Each time data was received      /////////////////////////////////////////////////////////////////////////////////
 	
 	function doEachtimeStuff(){
-		var ownusage = (parseInt(parseInt(app.currentPower) + parseInt(app.currentUsage) - parseInt(app.currentPowerProd)))
+		var ownusage = (parseInt(parseInt(currentPower) + parseInt(currentUsage) - parseInt(currentPowerProd)))
 		solar_mobile.write("{\"result\":\"ok\",\"solar\": {\"current\":" + currentPower + ", \"total\":" + totalValue + ", \"today\":" + todayValue + ", \"production\":" + currentPowerProd + ", \"usage_net\":" + currentUsage + ", \"usage_own\":" + ownusage + "}}")
 				
 		//load current 5 minutes into the array for the 5 minute graph
