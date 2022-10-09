@@ -29,7 +29,7 @@ Screen {
 	
 	Text{
 		id: inverterText
-		text:  (app.inverterCount>1)? "Omvormer 1: " + app.selectedInverter +   "   Omvormer 2: " + app.selectedInverter2 : "Omvormer: " + app.selectedInverter
+		text:  (app.inverterCount>1)? "Omvormer 1: " + app.selectedInverter +   "   Omvormer 2: " + app.selectedInverter2 + "   Totaal: " +  parseInt(app.totalValue/1000) + " kWh" : "Omvormer: " + app.selectedInverter + "   Totaal: " +  parseInt(app.totalValue/1000) + " kWh"
 		font.pixelSize: isNxt? 20:16
 		font.family:  qfont.bold.name
 		anchors {
@@ -43,7 +43,7 @@ Screen {
 
 	Text{
 		id: panelText
-		text:  "Huidig: " + app.currentPower + " Watt   Vandaag: " +  parseFloat(app.todayValue/1000).toFixed(1) + " kWh   Totaal: " +  parseInt(app.totalValue/1000) + " kWh"
+		text:  "Huidig: " + app.currentPower + " Watt   Vandaag: " +  parseFloat(app.todayValue/1000).toFixed(1) + " kWh   Teruglevering: " + parseFloat(parseInt(parseInt(app.totalPowerProductionNt) + parseInt(app.totalPowerProductionLt)) /1000).toFixed(1) + " kWh"
 		font.pixelSize: isNxt? 20:16
 		font.family:  qfont.bold.name
 		anchors {

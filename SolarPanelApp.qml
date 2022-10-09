@@ -20,6 +20,7 @@ App {
 	property url 	tileUrl2 : "SolarPanelTile2.qml"
 	property url 	tileUrl3 : "SolarPanelTile3.qml"
 	property url 	tileUrl5 : "SolarPanelTile5.qml"
+	property url 	tileUrl6 : "SolarPanelTile6.qml"
 	property url 	thumbnailIcon1: "qrc:/tsc/solarPanel_graph1.png"
 	property url 	thumbnailIcon2: "qrc:/tsc/solarPanel_txt.png"
 	property url 	thumbnailIcon3: "qrc:/tsc/solarPanel_rolling.png"
@@ -35,6 +36,7 @@ App {
 	property url 	solarThisMomentTileUrl : "SolarThisMomentTile.qml"
 	property url	graph2SolarHourTileUrl : "Graph2SolarHourTile.qml"
 	property url	solarGenerationTodayTileUrl : "SolarGenerationTodayTile.qml"
+    property url	solarProductionTodayTileUrl : "SolarProductionTodayTile.qml"
 	
 	property url 	solarRebootPopupUrl: "SolarRebootPopup.qml"
 	property 		Popup solarRebootPopup
@@ -44,6 +46,9 @@ App {
 	property int 	todayValue : 0
 	property int 	dayAvgValue : 1000
 	property int 	powerAvgValue : 1000
+
+	property int 	totalPowerProductionNt : 0
+	property int 	totalPowerProductionLt : 0
 
 	property int 	yesterdayTotal : 0
 	property int 	lastHourValue : 0
@@ -144,9 +149,11 @@ App {
 		registry.registerWidget("tile", tileUrl2, this, null, {thumbLabel: qsTr("Solar Panel"), thumbIcon: thumbnailIcon2, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", tileUrl3, this, null, {thumbLabel: qsTr("Solar 2 uur"), thumbIcon: thumbnailIcon3, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", tileUrl5, this, null, {thumbLabel: qsTr("Eigen verbruik"), thumbIcon: thumbnailIcon2, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});			
+		registry.registerWidget("tile", tileUrl6, this, null, {thumbLabel: qsTr("Stroom nu++"), thumbIcon: thumbnailIcon2, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});			
 		registry.registerWidget("tile", solarThisMomentTileUrl, this, null,  {thumbLabel: qsTr("Solar Nu"), thumbIcon:  thumbnailIcon4, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", graph2SolarHourTileUrl, this, null,  {thumbLabel: qsTr("Solar 2 uur"), thumbIcon:  thumbnailIcon5, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", solarGenerationTodayTileUrl, this, null,  {thumbLabel: qsTr("Solar Vandaag"), thumbIcon:  thumbnailIcon6, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
+		registry.registerWidget("tile", solarProductionTodayTileUrl, this, null,  {thumbLabel: qsTr("Solar Levering"), thumbIcon:  thumbnailIcon6, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("screen", solarPanelConfigScreenUrl, this, "solarPanelConfigScreen")
 		registry.registerWidget("popup", solarRebootPopupUrl, solarPanelApp, "solarRebootPopup");
 		registry.registerWidget("screen", solarPanelScreenUrl, this, "solarPanelScreen")
@@ -461,16 +468,17 @@ App {
 ///////////////////////////////////////// TIMERS /////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	Timer {
-		id: getUsageTimer   //interval to get ussage power data
+		id: getUsageTimer   //interval to get usage power data and production
 		interval: 20000
 		repeat: true
 		running: true
 		triggeredOnStart: true
 		onTriggered: {
 			SolarGeneral.getCurrentUsage("localhost")
+			SolarGeneral.getProductionNt("localhost")
+			SolarGeneral.getProductionLt("localhost")
 		}
     }
-
     Timer {//
 		id: scrapeTimer   //interval to get the solar data
 		interval: 30000

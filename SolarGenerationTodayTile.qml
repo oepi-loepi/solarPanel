@@ -2,7 +2,7 @@ import QtQuick 2.1
 
 BarTodayTile {
 	id: powerTodayTile
-	titleText: (app.pluginWarning.length <1)? qsTr("Solar Vandaag"): app.pluginWarning
+	titleText: (app.pluginWarning.length <1)? qsTr("Solar vandaag"): app.pluginWarning
 	lowerRectColor: dimmableColors.graphSolar
 	upperRectColor: dimmableColors.graphSolarSelected
 	
