@@ -146,10 +146,9 @@ function getAllSavedData(){
 		}
 	if((totalForAvg>0) && (avgcounter >3)) {dayAvgValue = parseInt(totalForAvg/avgcounter)} //calculate the avg for at least 3 days
 	
-
 	var todaydate = new Date()
 	var todayFDate = (todaydate.getDate() + "-" + parseInt(Qt.formatDateTime(todaydate,"MM"))).toString().trim()
-	var yesterdayDate =  Qt.formatDate(new Date(todaydate.getFullYear(), todaydate.getMonth(), todaydate.getDate()-1), "dd-MM-yyyy")
+	var yesterdayDate = yesterday()
 
 	//Try to resolve the yesterday total value from the RRA database
 	var http= new XMLHttpRequest()
@@ -254,14 +253,16 @@ function getCurrentUsage(host){
 }
 
 //////////////////////////////////////////////////////////////// PRODU DATA  //////////////////////////////////////////////////////////////////////////
+function yesterday(){
+	var $date = new Date();
+	$date.setDate($date.getDate()-1);
+	return $date.getDate() + '-' + ($date.getMonth()+1) + '-' + $date.getFullYear()
+}
 
 function getProductionNt(host){
 
 if (debugOutput) console.log("*********SolarPanel getProductionNt")
-var todaydate = new Date()
-var yesterdayDate = Qt.formatDate(new Date(todaydate.getFullYear(), todaydate.getMonth(), todaydate.getDate()-1), "dd-MM-yyyy")
-// uncomment this to use test function via javescrip console
-//var yesterdayDate = new Date(new Date(todaydate.getFullYear(), todaydate.getMonth(), todaydate.getDate()-1)).toLocaleString('nl-nl').split(' ')[0]
+var yesterdayDate = yesterday()
 
 //Try to resolve the production total based on the running total minus yesterday total from the RRA database
 var http = new XMLHttpRequest()
@@ -290,10 +291,7 @@ http.send()
 function getProductionLt(host){
 
 if (debugOutput) console.log("*********SolarPanel getProductionLt")
-var todaydate = new Date()
-var yesterdayDate = Qt.formatDate(new Date(todaydate.getFullYear(), todaydate.getMonth(), todaydate.getDate()-1), "dd-MM-yyyy")
-// uncomment this to use test function via javescrip console
-//var yesterdayDate = new Date(new Date(todaydate.getFullYear(), todaydate.getMonth(), todaydate.getDate()-1)).toLocaleString('nl-nl').split(' ')[0]
+var yesterdayDate = yesterday()
 
 //Try to resolve the production total based on the running total minus yesterday total from the RRA database
 var http = new XMLHttpRequest()
