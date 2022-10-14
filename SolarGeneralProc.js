@@ -137,7 +137,7 @@
 		var totalForAvg = 0
 		var avgcounter = 0
 		for (var i in lastFiveDays){
-			if (debugOutput) cconsole.log("*********SolarPanel lastFiveDays[i]: " + lastFiveDays[i])
+			if (debugOutput) console.log("*********SolarPanel lastFiveDays[i]: " + lastFiveDays[i])
 			if (!isNaN(lastFiveDays[i]) & (parseInt(lastFiveDays[i])>0)){
 					totalForAvg = totalForAvg + parseInt(lastFiveDays[i])
 					if (debugOutput) cconsole.log("*********SolarPanel parsed lastFiveDays[i]: " + lastFiveDays[i])
