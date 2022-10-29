@@ -280,6 +280,7 @@ App {
 /////////////////////////////////////////Each time data was received      /////////////////////////////////////////////////////////////////////////////////
 	
 	function doEachtimeStuff(){
+
 		//write data
 		var ownusage = (parseInt(parseInt(currentPower) + parseInt(currentUsage) - parseInt(currentPowerProd)))
 		solar_mobile_file.write("{\"result\":\"ok\",\"solar\": {\"current\":" + currentPower + ", \"total\":" + totalValue + ", \"today\":" + todayValue + ", \"production\":" + currentPowerProd + ", \"usage_net\":" + currentUsage + ", \"usage_own\":" + ownusage + "}}")

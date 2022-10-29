@@ -1,5 +1,3 @@
-
-
 /////////////////////////////////////////////////////////////////  GET SETTINGS /////////////////////////////////////////////
 function getSettings(){
 	//get the user settings from the system file
@@ -399,8 +397,3 @@ function getZonneplanRefreshToken(){
 	}
 	http.send(params);
 }
-
-
-
-
-	
