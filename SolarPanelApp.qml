@@ -168,10 +168,11 @@ App {
 	FileIO {id: solarPanel_refreshtoken;	source: "file:///mnt/data/tsc/appData/solarPanel_refreshtoken.txt"}
 	FileIO {id: pluginFile;	source: "SolarObjectPlugin.js"}
 	FileIO {id: pluginFile2;source: "SolarObjectPlugin2.js"}
-	FileIO {id: solar_mobile;	source: "file:///qmf/www/solar.html"}
+	FileIO {id: solar_mobile_file;	source: "file:///qmf/www/solar.html"}
 		
 	Component.onCompleted: { 
 		currentPower = 0
+
 		SolarGeneral.clearAllArrays() 			//clear graph arrays
 		SolarGeneral.getSettings()   			//get the user settings from the system file
 		SolarGeneral.checkInvertersOnStart()   	//check if plugin matches the selectedinverter
@@ -279,9 +280,10 @@ App {
 /////////////////////////////////////////Each time data was received      /////////////////////////////////////////////////////////////////////////////////
 	
 	function doEachtimeStuff(){
+		//write data
 		var ownusage = (parseInt(parseInt(currentPower) + parseInt(currentUsage) - parseInt(currentPowerProd)))
-		solar_mobile.write("{\"result\":\"ok\",\"solar\": {\"current\":" + currentPower + ", \"total\":" + totalValue + ", \"today\":" + todayValue + ", \"production\":" + currentPowerProd + ", \"usage_net\":" + currentUsage + ", \"usage_own\":" + ownusage + "}}")
-				
+		solar_mobile_file.write("{\"result\":\"ok\",\"solar\": {\"current\":" + currentPower + ", \"total\":" + totalValue + ", \"today\":" + todayValue + ", \"production\":" + currentPowerProd + ", \"usage_net\":" + currentUsage + ", \"usage_own\":" + ownusage + "}}")
+
 		//load current 5 minutes into the array for the 5 minute graph
 		var newArray = []
 		newArray = fiveminuteValues
@@ -297,6 +299,7 @@ App {
 		SolarGeneral.push5minData()		//push current 5 minutes into the array for the RRA  flow
 		SolarGeneral.push5yrhoursData()	//push quantity into the 5yrhours RRA data
 		SolarGeneral.push10yrdaysData() //push quantity into the 10yrdays RRA data
+		
 	}
 
 /////////////////////////////////////////WRITE 5MIN   DATA/////////////////////////////////////////////////////////////////////////////////////////////////
