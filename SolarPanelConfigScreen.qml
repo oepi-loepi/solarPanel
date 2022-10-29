@@ -241,7 +241,7 @@ Screen {
 	function setFieldText() {
 		console.log("*********SolarPanel gselectedInverter : " + selectedInverter)
 		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
-			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){listview1.currentIndex = x2 ; showUpdate = true}
+			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){listview1.currentIndex = x2 }
 		}
 		field1visible = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('ass')>-1)
 		field2visible = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('use')>-1)
@@ -253,7 +253,7 @@ Screen {
 	
 	function setFieldText2() {
 		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
-			if (invertersNameArray[x2].toLowerCase()==selectedInverter2.toLowerCase()){ listview1.currentIndex = x2 ; showUpdate = true}
+			if (invertersNameArray[x2].toLowerCase()==selectedInverter2.toLowerCase()){ listview1.currentIndex = x2}
 		}
 		field1visible2 = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('ass')>-1)
 		field2visible2 = ((inputDataType[listview1.currentIndex]).toString().toLowerCase().indexOf('use')>-1)
@@ -319,7 +319,7 @@ Screen {
 
 	function checkforUpdates2(){
 		//check current version
-		updatechecked = true
+		updatechecked2 = true
 		var oldPluginFileString = pluginFile2.read()
 		var n1 = oldPluginFileString.indexOf('<version>')
 		var n2 = oldPluginFileString.indexOf('</version>',n1)
@@ -669,19 +669,22 @@ Screen {
 			inverterSel2Clicked = false
 			selectedInverter = invertersNameArray[listview1.currentIndex]
 			
-			if (selectedInverter == "Zonneplan"){
-				app.zonneplan=true
-			}else{
-			    app.zonneplan=false
-			}
-			if (selectedInverter != listview1.name){
-				setFieldText()
-			}
 			if (app.selectedInverter == selectedInverter){
 				showUpdate = true
 			}else{
 				showUpdate = false
 			}
+			
+			if (selectedInverter == "Zonneplan"){
+				app.zonneplan=true
+			}else{
+			    app.zonneplan=false
+			}
+			
+			if (selectedInverter != listview1.name){
+				setFieldText()
+			}
+			
 		}
 	}
 	
@@ -702,13 +705,14 @@ Screen {
 			inverterSel1Clicked = false
 			inverterSel2Clicked = true
 			selectedInverter2 = invertersNameArray[listview1.currentIndex]
-			if (selectedInverter2 != listview1.name){
-				setFieldText2()
-			}
 			if (app.selectedInverter2 == selectedInverter2){
 				showUpdate2 = true
 			}else{
-				showUpdate2 = false
+				showUpdate2 = false 
+			}
+			
+			if (selectedInverter2 != listview1.name){
+				setFieldText2()
 			}
 		}
 		visible : (tempInverterCount == 2 & !app.zonneplan)
@@ -955,7 +959,7 @@ Screen {
 			buttonActiveColor: "lightgreen" ; buttonHoverColor: "blue";	enabled : true;	textColor : "black"
 			buttonText:  "Controleer op updates voor " + app.selectedInverter
 			onClicked: {checkforUpdates()}
-			visible:   showUpdate
+			visible: showUpdate
 		}
 		
 		Text {
