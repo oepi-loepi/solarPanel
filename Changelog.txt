@@ -1,14 +1,9 @@
-<<<<<<< Updated upstream
 1.4.4
 -	Changed configscreen for converter 2
 
 1.4.3
 -	Added power production total info
 -   Added two new tiles
-=======
-1.4.3
--	cmall error solved
->>>>>>> Stashed changes
 
 1.4.2
 -	json write at /solar.html
