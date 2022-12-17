@@ -1,3 +1,6 @@
+1.4.5
+-	Extra help text in configscreen
+
 1.4.4
 -	Changed configscreen for converter 2
 

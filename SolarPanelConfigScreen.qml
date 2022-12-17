@@ -501,7 +501,7 @@ Screen {
 		anchors {
 			left: mytexttop1.left
 			top: mytexttop1.bottom
-			topMargin: isNxt? 20 : 16
+			topMargin: isNxt? 8 : 6
 		}
 	}
 
@@ -538,7 +538,7 @@ Screen {
 	
 	Text {
 		id: mytexttop2
-		text: "Selecteer:"
+		text: "Selecteer jouw inverter:"
 		font {
 			family: qfont.semiBold.name
 			pixelSize: isNxt ? 18:14
@@ -546,7 +546,7 @@ Screen {
 		anchors {
 			top:inverterCountText.bottom
 			left:mytexttop1.left
-			topMargin: isNxt ? 10 :8
+			topMargin: isNxt? 8 : 6
 		}
 	}
 	
@@ -568,7 +568,7 @@ Screen {
 			id: aniDelegate
 			Item {
 				width: isNxt ? (parent.width-20) : (parent.width-16)
-				height: isNxt ? 22 : 18
+				height: isNxt ? 20 : 16
 				Text {
 					id: tst
 					text: name
@@ -585,7 +585,7 @@ Screen {
 			id: listview1
 			anchors {
 				top: parent.top
-				topMargin:isNxt ? 20 : 16
+				topMargin:isNxt ? 16 : 12
 				leftMargin: isNxt ? 12 : 9
 				left: parent.left
 			}
@@ -650,6 +650,22 @@ Screen {
 		}	
 	}
 
+	Text {
+		id: helpText1
+		text: "Druk een van de groene knopjes hieronder na selecteren van de juiste omvormer"
+		wrapMode: Text.WordWrap
+		width : isNxt ? parent.width/2 - 100 : parent.width/2 - 80
+		font {
+			family: qfont.semiBold.name
+			pixelSize: isNxt ? 18:14
+		}
+		anchors {
+			top:listviewContainer1.bottom
+			left:mytexttop1.left
+			topMargin: isNxt? 5: 4
+		}
+	}
+
 	NewTextLabel {
 		id: selText
 		width: isNxt ? 120 : 96;  
@@ -660,7 +676,7 @@ Screen {
 		textColor : "black"
 		buttonText:  "Selecteer 1"
 		anchors {
-			top: listviewContainer1.bottom
+			top: helpText1.bottom
 			left: listviewContainer1.left
 			topMargin: isNxt? 5: 4
 			}
@@ -727,7 +743,7 @@ Screen {
 		anchors {
 			left: listviewContainer1.left
 			top: selText.bottom
-			topMargin: isNxt? 20 : 16
+			topMargin: isNxt? 8 : 6
 		}
 	}
 
@@ -756,7 +772,7 @@ Screen {
 		anchors {
 			left: listviewContainer1.left
 			top: showInSleep.bottom
-			topMargin: isNxt? 20 : 16
+			topMargin: isNxt? 8 : 6
 		}
 	}
 
@@ -783,9 +799,9 @@ Screen {
 			pixelSize: isNxt ? 24:18
 		}
 		anchors {
-			top: enablePolling.bottom
+			bottom:parent.bottom
 			left: enablePolling.left
-			topMargin: isNxt ? 20:16
+			bottomMargin: isNxt? 8 : 6
 		}
 	}
 	
