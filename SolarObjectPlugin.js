@@ -1,85 +1,88 @@
-/////////             <version>1.0.13</version>
-/////////                     GROW1                        /////////////
-/////////  Plugin to extract Growatt Solar data for Toon  ///////////////
+/////////             <version>1.0.2</version>
+/////////                     FOX1                        /////////////
+/////////  Plugin to extract FoxCloud Solar data for Toon  ///////////////
 /////////                   By Oepi-Loepi                  ///////////////
 
-	function getSolarData(passWord,userName,apiKey,siteid,urlString,totalValue){
-		if (debugOutput) console.log("*********SolarPanel Start getGrowattStep1")
-		//modified hash : if first of pairs  is 0 then replace by c
-		var newpass= Qt.md5(passWord)
-		var newString =""
-		for(var x = 0;x < newpass.length ;x++){
-			if ((x%2 == 0) && newpass[x] == "0") {
-				newString += "c"
-			}
-			else{
-				newString += newpass[x]
-			}
-		}
-		var params = "password=" + newString + "&userName=" + userName
-		var http = new XMLHttpRequest()
-		var url2 = "https://server-api.growatt.com/newTwoLoginAPI.do"
-		console.log("*********SolarPanel  url2" +  url2)
-		http.open("POST", url2, true)
-		http.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-		http.setRequestHeader("Content-length", params.length)
-		http.setRequestHeader("Connection", "keep-alive")
-		http.setUserAgent = "ShinePhone/5.92 (iPad; iOS 14.6; Scale/2.00)"
-        http.onreadystatechange = function() { // Call a function when the state changes.
-			if (http.readyState === 4) {
-				if (http.status === 200) {
-					var JsonString = http.responseText
-					if (debugOutput) console.log("*********SolarPanel JsonString " +  JsonString)
-					var JsonObject= JSON.parse(JsonString)
-					getGrowattStep2();
-				} else {
-					if (debugOutput) console.log("*********SolarPanel  getGrowattStep2 http.status " +  http.status)
-					currentPower = 0
-					parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
+    function getSolarData(passWord,userName,apiKeyPlugin,siteid,urlString,totalValue){
+		
+		if (debugOutput) console.log("*********SolarPanel Start getSolarData")
+		if (debugOutput) console.log("*********SolarPanel Start getSolarData apiKey: " + apiKeyPlugin)
+		if (apiKeyPlugin !=""){
+			getStep2(apiKeyPlugin)
+		}else{
+			var newpass= Qt.md5(passWord)
+			var http = new XMLHttpRequest()
+			var url = "https://www.foxesscloud.com/c/v0/user/login"
+			http.open("POST", url, true);
+			http.withCredentials = true;
+			http.setRequestHeader("Content-Type", "application/json");
+			http.onreadystatechange = function() { // Call a function when the state changes.
+				if (http.readyState === XMLHttpRequest.DONE) {
+					if (http.status === 200 || http.status === 300  || http.status === 302) {
+						try {
+							if (debugOutput) console.log("http.status: " + http.status)
+							if (debugOutput) console.log(http.responseText)
+							var JsonString = http.responseText
+							var JsonObject= JSON.parse(JsonString)
+							var token = JsonObject.result.token
+							if (debugOutput) console.log(token)
+							if (getDataCount == 0){apiKey = token}
+							if (getDataCount == 1){apiKey2 = token}
+							getStep2(token)
+						}
+						catch (e){
+							currentPower = 0
+							if (debugOutput) console.log("http.status (error1): " + http.status)
+							parseReturnData(0,totalValue,todayValue,0,0,0,0, http.status,"error")
+						}
+					} else {
+						if (debugOutput) console.log("http.status (error2): " + http.status)
+						parseReturnData(currentPower,totalValue,0,0,0,0,0, http.status,"error")
+					}
 				}
 			}
+			http.send(JSON.stringify({"user": userName,"password": Qt.md5(passWord)}));
 		}
-		http.send(params);
     }
-	
 
-
-	function getGrowattStep2(){
-		if (debugOutput) console.log("*********SolarPanel Start getGrowattStep3")
-		var http = new XMLHttpRequest()
-		var params = "language=5"
-		var url2 = "https://server-api.growatt.com/newPlantAPI.do?action=getUserCenterEnertyDataTwo"
-		console.log("*********SolarPanel  url2 " +  url2)
-		http.open("GET", url2, true)
-		http.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
-		http.setRequestHeader("Content-length", params.length)
-		http.setRequestHeader("Connection", "keep-alive")
-		http.setUserAgent = "ShinePhone/5.92 (iPad; iOS 14.6; Scale/2.00)"
-		http.onreadystatechange = function() { // Call a function when the state changes.
-			if (http.readyState === 4) {
-				if (http.status === 200) {
-					try {
-						var JsonString = http.responseText
-						if (debugOutput) console.log("*********SolarPanel JsonString " +  JsonString)
-						var JsonObject= JSON.parse(JsonString)
-						currentPower = parseInt(JsonObject.powerValue)
-						if (debugOutput) console.log("currentPower: " + currentPower)
-						var today2 = Math.floor((JsonObject.todayValue)*1000)
-						if (debugOutput) console.log("today2: " + today2)
-						totalValue= Math.floor((JsonObject.totalValue)*1000)
-						if (debugOutput) console.log("totalValue: " + totalValue)
-						 //getGrowattStep3()
-						parseReturnData(currentPower,totalValue,today2,0,0,0,0,http.status,"succes")
-					}
-					catch (e){
-						currentPower = 0
-						parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
-					}
-				} else {
-					if (debugOutput) console.log("*********SolarPanel  getGrowattStep3 http.status " +  http.status)
-					parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
-				}
-			}
-		}
-		http.send(params);
-	}
+    function getStep2(token){
+        if (debugOutput) console.log("*********SolarPanel Start getStep2")
+        var data = "{\"pageSize\":10,\"currentPage\":1,\"total\":0,\"condition\":{\"queryDate\":{\"begin\":0,\"end\":0}}}";
+        var http = new XMLHttpRequest()
+        var url = "https://www.foxesscloud.com/c/v0/device/list";
+        http.open("POST", url, true);
+        http.withCredentials = true;
+        http.setRequestHeader("Content-Type", "application/json");
+        http.setRequestHeader("token", token);
+        http.onreadystatechange = function() {
+            if (http.readyState === XMLHttpRequest.DONE) {
+                if (http.status === 200 || http.status === 300  || http.status === 302) {
+                    try {
+						if (debugOutput) console.log(http.responseText)
+						if (http.responseText.indexOf("null")>0 & http.responseText.indexOf("41809")>0){
+							if (debugOutput) console.log("No token or wrong token submitted so try to get new token next time")
+							if (getDataCount == 0){apiKey = ""}
+							if (getDataCount == 1){apiKey2 = ""}
+							parseReturnData(currentPower,totalValue,todayValue,0,0,0,0, http.status,"error")
+						}else{
+							var JsonString = http.responseText
+							var JsonObject= JSON.parse(JsonString)
+							var today2 = Math.floor(JsonObject.result.devices[0].generationToday  * 1000)
+							currentPower = Math.floor(JsonObject.result.devices[0].power * 1000)
+							totalValue = Math.floor(JsonObject.result.devices[0].generationTotal * 1000)
+							parseReturnData(currentPower, totalValue, today2 ,0,0,0,0,http.status,"succes")
+						}
+                    }
+                    catch (e){
+                        currentPower = 0
+						if (debugOutput) console.log("http.status (error3): " + http.status)
+                        parseReturnData(0,totalValue,todayValue,0,0,0,0, http.status,"error")
+                    }
+                } else {
+					if (debugOutput) console.log("http.status (error4): " + http.status)
+                    parseReturnData(currentPower,totalValue,0,0,0,0,0, http.status,"error")
+                }
+            }
+        }
+        http.send(data);
+    }

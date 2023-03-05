@@ -124,19 +124,6 @@ Screen {
 	FileIO {id: pluginFile;	source: "SolarObjectPlugin.js"}
 	FileIO {id: pluginFile2;source: "SolarObjectPlugin2.js"}
 
-/*
-	{"plugins":[
-			{"friendlyName":"Growatt", "filename":"GROW1", "data": ["Password", "Username"]},
-			{"friendlyName":"Solaredge", "filename":"SOLEDGE1", "data": ["SiteID", "APIKey"]},
-			{"friendlyName":"Fronius", "filename":"FRONIUS1", "data": ["URL"]},
-			{"friendlyName":"PVOutput", "filename":"PVOUTPUT1", "data": ["SiteID", "APIKey"]},
-			{"friendlyName":"Kostal Piko", "filename":"KOSTAL1", "data": ["URL"]},
-			{"friendlyName":"SMA", "filename":"SMA1", "data": ["Password","URL"]},
-			{"friendlyName":"ZeverSolar", "filename":"ZEVER1", "data": ["URL"]}
-		]
-	}
-*/
-
 	onShown: {
 		addCustomTopRightButton("Opslaan")
 		getInverters()
@@ -1488,6 +1475,8 @@ Screen {
 				app.passWord = tempPassWord
 				app.userName = tempUserName
 				app.siteID = tempSiteID
+				if(selectedInverter.toLowerCase() == "foxcloud"){tempApiKey = ""}
+				if(selectedInverter.toLowerCase() == "Enphase V4-2"){tempApiKey = ""}
 				app.apiKey = tempApiKey
 				app.urlString = tempURL
 				app.idx = tempApiKey
@@ -1496,6 +1485,8 @@ Screen {
 				app.passWord2 = tempPassWord2
 				app.userName2 = tempUserName2
 				app.siteID2 = tempSiteID2
+				if(selectedInverter2.toLowerCase() == "foxcloud"){tempApiKey2 = ""}
+				if(selectedInverter2.toLowerCase() == "Enphase V4-2"){tempApiKey2 = ""}
 				app.apiKey2 = tempApiKey2
 				app.urlString2 = tempURL2
 				app.idx2 = tempApiKey2

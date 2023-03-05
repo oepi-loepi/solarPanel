@@ -84,7 +84,12 @@ App {
 	property date 	twoHoursEarlier
 	
 	property bool 	enableSleep : false
+
+
 	property bool 	debugOutput : false	// Show console messages. Turn on in settings file !
+
+
+
 	property bool 	enablePolling : true
 	property string configMsgUuid : ""
 	property string popupString : "SolarPanel instellen en herstarten als nodig" + "..."
@@ -122,6 +127,7 @@ App {
 	property string zonneplanUUID: ""
 	property string zonneplanToken: ""
 	property string zonneplanRefreshToken: ""
+	
 	
 	property variant solarpanelSettingsJson : {
 			'inverterCount': "1",
@@ -242,9 +248,13 @@ App {
 				doData()
 			}
 			if (v8 == "error"){
-				currentPower = inverter1CurrentPower
-				totalValue = inverter1Total
-				todayValue = inverter1Day
+				//currentPower = inverter1CurrentPower
+				//totalValue = inverter1Total
+				//todayValue = inverter1Day
+				currentPower = v0
+				totalValue = v1
+				todayValue = v2
+
 				doData()
 			}
 		}
