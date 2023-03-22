@@ -42,7 +42,7 @@ Tile {
 		color: !dimState? "black" : "white"
 		anchors {
 			top: tileTitle.bottom
-			topMargin: isNxt? 5:4
+			topMargin: isNxt? 4:3
 			horizontalCenter: parent.horizontalCenter
 		}
 		font.pixelSize: isNxt? 22:18
@@ -63,6 +63,19 @@ Tile {
 		font.family: qfont.bold.name
     }
 
+	Text {
+		id: totPower
+
+		text: (app.pluginWarning.length <1)?  "Totaal: " +  parseInt(app.totalValue/1000) + " kWh" : ""
+		color: !dimState? "black" : "white"
+		anchors {
+			top: dayPower.bottom
+			topMargin: 1
+			horizontalCenter: parent.horizontalCenter
+		}
+		font.pixelSize: isNxt? 22:18
+		font.family: qfont.bold.name
+    }
 
    
 	Text {
@@ -70,7 +83,7 @@ Tile {
 		text: (app.pluginWarning.length <1)? "Lev.: " + app.currentPowerProd + " W" : ""
 		color: !dimState? "black" : "white"
 		anchors {
-			top: dayPower.bottom
+			top: totPower.bottom
 			topMargin: 1
 			horizontalCenter: parent.horizontalCenter
 		}
