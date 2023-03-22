@@ -9,18 +9,24 @@ import FileIO 1.0
 
 import BxtClient 1.0
 import qb.energyinsights 1.0 as EnergyInsights
+import "SolarZonneplanProc.js" as SolarZonneplan
 import "SolarObjectPlugin.js" as Solar
 import "SolarObjectPlugin2.js" as Solar2
 import "SolarGeneralProc.js" as SolarGeneral
 
+
+
 App {
 	id: solarPanelApp
+
+	property bool 	debugOutput : true	// Show console messages. Turn on in settings file !
 	
 	property url 	tileUrl : "SolarPanelTile.qml"
 	property url 	tileUrl2 : "SolarPanelTile2.qml"
 	property url 	tileUrl3 : "SolarPanelTile3.qml"
 	property url 	tileUrl5 : "SolarPanelTile5.qml"
 	property url 	tileUrl6 : "SolarPanelTile6.qml"
+	property url 	tileTestUrl : "SolarPanelTestTile.qml"
 	property url 	thumbnailIcon1: "qrc:/tsc/solarPanel_graph1.png"
 	property url 	thumbnailIcon2: "qrc:/tsc/solarPanel_txt.png"
 	property url 	thumbnailIcon3: "qrc:/tsc/solarPanel_rolling.png"
@@ -57,6 +63,9 @@ App {
 	property int    sunrisePerc : 0
 	property int	sunsetPerc : 0
 	
+	property url    pluginUrl : "https://raw.githubusercontent.com/ToonSoftwareCollective/solarpanel-plugins/main/"
+	
+	
 	property string currentPowerProd : "0"
 	property string currentUsage : "0"
     property string dtime : "0"
@@ -84,11 +93,6 @@ App {
 	property date 	twoHoursEarlier
 	
 	property bool 	enableSleep : false
-
-
-	property bool 	debugOutput : false	// Show console messages. Turn on in settings file !
-
-
 
 	property bool 	enablePolling : true
 	property string configMsgUuid : ""
@@ -124,10 +128,20 @@ App {
 	property string idx2 : ""
 
 	property bool 	zonneplan : false
+	property bool 	zonneplan2 : false
 	property string zonneplanUUID: ""
+	property string zonneplanUUID2: ""
 	property string zonneplanToken: ""
+	property string zonneplanToken2: ""
 	property string zonneplanRefreshToken: ""
+	property string zonneplanRefreshToken2: ""
+	property int    zonneplantotalPower : 0
+	property int    zonneplantotalPower2 : 0
+	property int    zonneplanlastPower : 0
+	property int    zonneplanlastPower2 : 0
 	
+	property bool 	enphase : false
+	property bool 	enphase2 : false
 	
 	property variant solarpanelSettingsJson : {
 			'inverterCount': "1",
@@ -155,7 +169,10 @@ App {
 		registry.registerWidget("tile", tileUrl2, this, null, {thumbLabel: qsTr("Solar Panel"), thumbIcon: thumbnailIcon2, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", tileUrl3, this, null, {thumbLabel: qsTr("Solar 2 uur"), thumbIcon: thumbnailIcon3, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", tileUrl5, this, null, {thumbLabel: qsTr("Eigen verbruik"), thumbIcon: thumbnailIcon2, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});			
-		registry.registerWidget("tile", tileUrl6, this, null, {thumbLabel: qsTr("Stroom nu++"), thumbIcon: thumbnailIcon2, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});			
+		registry.registerWidget("tile", tileUrl6, this, null, {thumbLabel: qsTr("Stroom nu++"), thumbIcon: thumbnailIcon2, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});
+
+		if (debugOutput) registry.registerWidget("tile", tileTestUrl, this, null, {thumbLabel: qsTr("Test"), thumbIcon: thumbnailIcon2, thumbCategory: "general", thumbWeight: 30, baseTileWeight: 10, thumbIconVAlignment: "center"});		
+		
 		registry.registerWidget("tile", solarThisMomentTileUrl, this, null,  {thumbLabel: qsTr("Solar Nu"), thumbIcon:  thumbnailIcon4, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", graph2SolarHourTileUrl, this, null,  {thumbLabel: qsTr("Solar 2 uur"), thumbIcon:  thumbnailIcon5, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
 		registry.registerWidget("tile", solarGenerationTodayTileUrl, this, null,  {thumbLabel: qsTr("Solar Vandaag"), thumbIcon:  thumbnailIcon6, thumbCategory:  "general", thumbWeight: 30, baseTileSolarWeight: 10, thumbIconVAlignment: "center"});
@@ -172,6 +189,9 @@ App {
 	FileIO {id: solarPanel_lastWrite;	source: "file:///mnt/data/tsc/appData/solarPanel_lastWrite.txt"}
 	FileIO {id: solarPanel_lastFiveDays;	source: "file:///mnt/data/tsc/appData/solarPanel_lastFiveDays.txt"}
 	FileIO {id: solarPanel_refreshtoken;	source: "file:///mnt/data/tsc/appData/solarPanel_refreshtoken.txt"}
+	FileIO {id: solarPanel_token;	source: "file:///mnt/data/tsc/appData/solarPanel_token.txt"}
+	FileIO {id: solarPanel_refreshtoken2;	source: "file:///mnt/data/tsc/appData/solarPanel_refreshtoken2.txt"}
+	FileIO {id: solarPanel_token2;	source: "file:///mnt/data/tsc/appData/solarPanel_token2.txt"}
 	FileIO {id: pluginFile;	source: "SolarObjectPlugin.js"}
 	FileIO {id: pluginFile2;source: "SolarObjectPlugin2.js"}
 	FileIO {id: solar_mobile_file;	source: "file:///qmf/www/solar.html"}
@@ -186,6 +206,12 @@ App {
 		SolarGeneral.getSunTimes() 				//get sunrise and sunset
 		
 		scrapeTimer.running = true
+		
+		if (zonneplan){Solar.getZonneplanRefreshToken(1)}
+		if (zonneplan2){Solar.getZonneplanRefreshToken(2)}
+		
+		if (enphase){Solar.getEnphaseRefreshToken(1)}
+		if (enphase2){Solar.getEnphaseRefreshToken(2)}
 	}
 
 ///////////////////////////////////////////////////////////////// GET DATA //////////////////////////////////////////////////////////////////////////////	
@@ -500,25 +526,33 @@ App {
 		running: false
 		triggeredOnStart: false
 		onTriggered: {
-			scrapeTimer.interval = 300000
-			dateTimeNow= new Date()
-			dtime = parseInt(Qt.formatDateTime (dateTimeNow,"hh") + "" + Qt.formatDateTime (dateTimeNow,"mm"))
+			if (!solarPanelConfigScreen.visible){
+				scrapeTimer.interval = 300000
+				dateTimeNow= new Date()
+				dtime = parseInt(Qt.formatDateTime (dateTimeNow,"hh") + "" + Qt.formatDateTime (dateTimeNow,"mm"))
 
-			dday = dateTimeNow.getDate()
-			month = parseInt(Qt.formatDateTime(dateTimeNow,"MM"))
-			hrs = parseInt(Qt.formatDateTime(dateTimeNow,"hh"))
-			mins = parseInt(Qt.formatDateTime(dateTimeNow,"mm"))
-			var minsfromfive = ((hrs-5)*60) + mins
-			minsfromfiveIndex  = parseInt(minsfromfive/5)
-			if (debugOutput) console.log("*********SolarPanel minsfromfive : " + minsfromfive)
-			if (debugOutput) console.log("*********SolarPanel dtime : " + dtime)
-			if (debugOutput) console.log("*********SolarPanel minsfromfiveIndex : " + minsfromfiveIndex)
-			
-			if(enablePolling){			
-				getDataCount = 0
-				getData()
+				dday = dateTimeNow.getDate()
+				month = parseInt(Qt.formatDateTime(dateTimeNow,"MM"))
+				hrs = parseInt(Qt.formatDateTime(dateTimeNow,"hh"))
+				mins = parseInt(Qt.formatDateTime(dateTimeNow,"mm"))
+				var minsfromfive = ((hrs-5)*60) + mins
+				minsfromfiveIndex  = parseInt(minsfromfive/5)
+				if (debugOutput) console.log("*********SolarPanel minsfromfive : " + minsfromfive)
+				if (debugOutput) console.log("*********SolarPanel dtime : " + dtime)
+				if (debugOutput) console.log("*********SolarPanel minsfromfiveIndex : " + minsfromfiveIndex)
+				
+				if(enablePolling){			
+					getDataCount = 0
+					getData()
+				}
 			}
-		}	
+		}		
+    }
+	
+	//scrape immidiately for test purposes (if debugoutput thanm an extra test button is installable)
+    function doScrapeNow() {
+		if (debugOutput) console.log("*********SolarPanel MANUAL scrape requested ")
+		scrapeTimer.triggered()
     }
  
 ///////////////////////////////////////// SAVE ALL TO SETTINGS ///////////////////////////////////////////////////////////////////////////////////////////////// 
@@ -539,4 +573,65 @@ App {
 			configMsgUuid = deviceUuid
 		}
 	}
+	
+    Timer {
+        id: solarDelaytimer1
+    }
+	
+	//delaytimer
+    function solarDelay(delayTime, cb) {
+		solarDelaytimer1.interval = delayTime
+		solarDelaytimer1.repeat = false
+		solarDelaytimer1.triggered.connect(cb)
+        solarDelaytimer1.start()
+    }
+
+
+	Timer {
+        id: zonneplanDelayTimer
+    }
+	
+	//delaytimer
+    function zonneplanDelay(delayTime, cb) {
+		zonneplanDelayTimer.interval = delayTime
+		zonneplanDelayTimer.repeat = false
+		zonneplanDelayTimer.triggered.connect(cb)
+        zonneplanDelayTimer.start()
+    }
+	
+	function zonneplanDelayStop() {
+        zonneplanDelayTimer.stop()
+    }
+
+	Timer {
+        id: zonneplanRegisterDelayTimer
+    }
+	
+	//delaytimer
+    function zonneplanRegisterDelay(delayTime, cb) {
+		zonneplanRegisterDelayTimer.interval = delayTime
+		zonneplanRegisterDelayTimer.repeat = false
+		zonneplanRegisterDelayTimer.triggered.connect(cb)
+        zonneplanRegisterDelayTimer.start()
+    }
+	
+	
+	Timer {
+        id: solarEnphase
+    }
+	
+	//delaytimer
+    function solarEnphaseDelay(delayTime, cb) {
+		if (debugOutput) console.log("*********SolarPanel Starting timer solarEnphaseDelay")
+		solarEnphase.interval = delayTime
+		solarEnphase.repeat = false
+		solarEnphase.triggered.connect(cb)
+        solarEnphase.start()
+    }
+	
+	function solarEnphaseDelayStop() {
+       solarEnphase.stop()
+    }
+	
+	
 }

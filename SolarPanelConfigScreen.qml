@@ -2,6 +2,7 @@ import QtQuick 2.1
 import BasicUIControls 1.0
 import qb.components 1.0
 import FileIO 1.0
+
 import "SolarZonneplanProc.js" as SolarZonneplan
 
 Screen {
@@ -19,7 +20,7 @@ Screen {
 	
 	property url inverterUrl : "https://raw.githubusercontent.com/ToonSoftwareCollective/solarpanel-plugins/main/inverters.json"
 	property url inverterTestUrl : "https://raw.githubusercontent.com/ToonSoftwareCollective/solarpanel-plugins/main/invertersTest.json"
-	property url pluginUrl : "https://raw.githubusercontent.com/ToonSoftwareCollective/solarpanel-plugins/main/"
+	property url pluginUrl : app.pluginUrl
 	
 	property int numberofItems
 	
@@ -110,8 +111,10 @@ Screen {
 	
 	property bool debugOutput : app.debugOutput						// Show console messages. Turn on in settings file !
 	
-	property string sendMailText : "mail versturen"
-	property string getPasseText : "Eerst mail versturen"
+	property string sendMailText
+	property string getPasseText
+	property string sendMailText2
+	property string getPasseText2
 	
 
 	FileIO {id: hcb_scsync_Configfile;	source: "file:///mnt/data/qmf/config/config_happ_scsync.xml"}
@@ -127,6 +130,12 @@ Screen {
 	onShown: {
 		addCustomTopRightButton("Opslaan")
 		getInverters()
+		sendMailText = "mail versturen"
+		getPasseText = "Eerst mail versturen"
+		sendMailText2 = "mail versturen"
+		getPasseText2 = "Eerst mail versturen"
+	
+
 		enableSleepToggle.isSwitchedOn = app.enableSleep
 		enablePollingToggle.isSwitchedOn = app.enablePolling
 		inputField1.inputText = tempPassWord
@@ -160,6 +169,7 @@ Screen {
 	}
 /////////////////////////////////////////////////////// GET INVERTERS FROM THE INTERNET  ///////////////////////////////////////////////	
 	function getInverters(){
+		if (debugOutput) console.log("*********SolarPanel getInverters()")
 		if (invertersNameArray.length < 1 || manual){
 			manual = false 
 			var http = new XMLHttpRequest()
@@ -202,7 +212,7 @@ Screen {
 /////////////////////////////////////////////////////// AFTER INVERTERS ARE FETCHED FROM THE INTERNET ///////////////////////////////////////////////
 
 	function resumefromHttpRequest(){
-		console.log("*********SolarPanel gselectedInverter : " + selectedInverter)
+		if (debugOutput) console.log("*********SolarPanel gselectedInverter : " + selectedInverter)
 		enableSleepToggle.isSwitchedOn = app.enableSleep
 		addCustomTopRightButton("Opslaan")
 		fillInverters()
@@ -226,7 +236,7 @@ Screen {
 
 /////////////////////////////////////////////////////// CREATE INPUTFIELDS DEPENDANT ON THER "DATA" FIELD ///////////////////////////////////////////////
 	function setFieldText() {
-		console.log("*********SolarPanel gselectedInverter : " + selectedInverter)
+		if (debugOutput) console.log("*********SolarPanel gselectedInverter : " + selectedInverter)
 		for(var x2 = 0;x2 < invertersNameArray.length;x2++){
 			if (invertersNameArray[x2].toLowerCase()==selectedInverter.toLowerCase()){listview1.currentIndex = x2 }
 		}
@@ -286,7 +296,7 @@ Screen {
 		http.onreadystatechange=function() {
 			if (http.readyState === 4){
 				if (http.status === 200) {
-					console.log("*********SolarPanel new Plugin: " + http.responseText)
+					if (debugOutput) console.log("*********SolarPanel new Plugin: " + http.responseText)
 					var onlinePluginFileString = http.responseText
 					var n1 = onlinePluginFileString.indexOf('<version>')
 					var n2 = onlinePluginFileString.indexOf('</version>',n1)
@@ -298,7 +308,7 @@ Screen {
 				}
 			}
 		}
-		console.log(pluginUrl + onlinePluginFileName + ".plugin.txt")
+		if (debugOutput) console.log(pluginUrl + onlinePluginFileName + ".plugin.txt")
 		http.open("GET",pluginUrl + onlinePluginFileName + ".plugin.txt"  , true)
 		http.send()
 
@@ -322,7 +332,7 @@ Screen {
 		http.onreadystatechange=function() {
 			if (http.readyState === 4){
 				if (http.status === 200) {
-					console.log("*********SolarPanel new Plugin: " + http.responseText)
+					if (debugOutput) console.log("*********SolarPanel new Plugin: " + http.responseText)
 					var onlinePluginFileString = http.responseText
 					var n1 = onlinePluginFileString.indexOf('<version>')
 					var n2 = onlinePluginFileString.indexOf('</version>',n1)
@@ -334,7 +344,7 @@ Screen {
 				}
 			}
 		}
-		console.log(pluginUrl + onlinePluginFileName2 + ".plugin.txt")
+		if (debugOutput) console.log(pluginUrl + onlinePluginFileName2 + ".plugin.txt")
 		http.open("GET",pluginUrl + onlinePluginFileName2 + ".plugin.txt"  , true)
 		http.send()
 	}	
@@ -678,7 +688,7 @@ Screen {
 				showUpdate = false
 			}
 			
-			if (selectedInverter == "Zonneplan"){
+			if (selectedInverter == "Zonneplan T"){
 				app.zonneplan=true
 			}else{
 			    app.zonneplan=false
@@ -714,11 +724,17 @@ Screen {
 				showUpdate2 = false 
 			}
 			
+			if (selectedInverter == "Zonneplan T"){
+				app.zonneplan2=true
+			}else{
+			    app.zonneplan2=false
+			}
+			
 			if (selectedInverter2 != listview1.name){
 				setFieldText2()
 			}
 		}
-		visible : (tempInverterCount == 2 & !app.zonneplan)
+		visible : (tempInverterCount == 2)
 	}
 ///////////////////////////////////////////// SELECTED ///////////////////////////////////////////////////////////////////////////////
 	Text {
@@ -937,9 +953,11 @@ Screen {
 			id: sendMail
 			width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
 			height: isNxt ? 40:32
-			buttonActiveColor: "lightgreen" ; buttonHoverColor: "blue";	enabled : true;	textColor : "black"
+			buttonActiveColor: "lightgreen" ; buttonHoverColor: "blue";	
+			enabled : true;	
+			textColor : "black"
 			buttonText:  sendMailText
-			onClicked: SolarZonneplan.sendZonneplanMailRequest(inputField2.inputText)
+			onClicked: SolarZonneplan.sendZonneplanMailRequest(inputField2.inputText,1)
 			visible:   app.zonneplan
 		}
 		
@@ -950,7 +968,7 @@ Screen {
 			height: isNxt ? 40:32
 			buttonActiveColor: "lightgreen" ; buttonHoverColor: "blue";	enabled : true;	textColor : "black"
 			buttonText:  getPasseText
-			onClicked: SolarZonneplan.getPassword(inputField2.inputText)
+			onClicked: SolarZonneplan.getPassword(inputField2.inputText,1)
 			visible:   app.zonneplan
 		}
 
@@ -1102,6 +1120,30 @@ Screen {
 		}
 		
 		NewTextLabel {
+			id: sendMail2
+			width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
+			height: isNxt ? 40:32
+			buttonActiveColor: "lightgreen" ; buttonHoverColor: "blue";	
+			enabled : true;	
+			textColor : "black"
+			buttonText:  sendMailText2
+			onClicked: SolarZonneplan.sendZonneplanMailRequest(inputField2.inputText,2)
+			visible:   app.zonneplan2
+		}
+		
+		
+		NewTextLabel {
+			id: getPassw2
+			width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext1.left - 32
+			height: isNxt ? 40:32
+			buttonActiveColor: "lightgreen" ; buttonHoverColor: "blue";	enabled : true;	textColor : "black"
+			buttonText:  getPasseText2
+			onClicked: SolarZonneplan.getPassword(inputField2.inputText,2)
+			visible:   app.zonneplan2
+		}
+
+		
+		NewTextLabel {
 			id: updateText2
 			width: isNxt?  parent.width - mytext1.left - 40 : parent.width - mytext12.left - 32
 			height: isNxt ? 40:32
@@ -1166,7 +1208,7 @@ Screen {
 		switch (configChangeStep) {
 		
 			case 0: {
-				console.log("*********SolarPanel show popup")
+				if (debugOutput) console.log("*********SolarPanel show popup")
 				app.popupString = "SolarPanel instellen en herstarten als nodig" + "..."
 				app.solarRebootPopup.show()
 				
@@ -1217,15 +1259,15 @@ Screen {
 					var rewrite_hcb_scsync = false
 					configfileString =  hcb_scsync_Configfile.read()
 					oldConfigScsyncFileString = configfileString
-					//console.log("*********SolarPanel configfileString : " + configfileString)
+					if (debugOutput) console.log("*********SolarPanel configfileString : " + configfileString)
 					var fl = configfileString.length
 					var n201 = configfileString.indexOf('<SolarDisplay>')
 					var n202 = configfileString.indexOf('</SolarDisplay>',n201)
-					console.log("*********SolarPanel oldvalue of SolarDisplay: " + configfileString.substring(n201, n202))
+					if (debugOutput) console.log("*********SolarPanel oldvalue of SolarDisplay: " + configfileString.substring(n201, n202))
 					if (configfileString.substring(n201, n202) != "<SolarDisplay>1"){
 						needReboot = true
 						rewrite_hcb_scsync = true
-						console.log("*********SolarPanel setting SolarDisplay to 1 ")
+						if (debugOutput) console.log("*********SolarPanel setting SolarDisplay to 1 ")
 						var newconfigfileString = configfileString.substring(0, n201) + "<SolarDisplay>1" + configfileString.substring(n202, configfileString.length)
 						configfileString = newconfigfileString
 					}
@@ -1239,12 +1281,12 @@ Screen {
 					if (configfileString.substring(n203, n204) != "<SolarActivated>1"){
 						needReboot = true
 						rewrite_hcb_scsync = true
-						console.log("*********SolarPanel setting SolarActivated to 1 ")
+						if (debugOutput) console.log("*********SolarPanel setting SolarActivated to 1 ")
 						var newconfigfileString = configfileString.substring(0, n203) + "<SolarActivated>1" + configfileString.substring(n204, configfileString.length)
 						configfileString = newconfigfileString
 					}
 					else{
-						console.log("*********SolarPanel no need to update SolarActivated")
+						if (debugOutput) console.log("*********SolarPanel no need to update SolarActivated")
 					}
 					if (rewrite_hcb_scsync){
 						needReboot = true
@@ -1253,7 +1295,7 @@ Screen {
 						app.popupString = "Zon op Toon geactiveerd" + "..." 
 					}
 					else{
-						console.log("*********SolarPanel no need to rewrite_hcb_scsync")
+						if (debugOutput) console.log("*********SolarPanel no need to rewrite_hcb_scsync")
 						app.popupString = "Zon op Toon was reeds geactiveerd" + "..." 
 					}
 				} catch(e) { }
@@ -1265,11 +1307,11 @@ Screen {
 				try {
 					configfileString =  hcb_rrd_Configfile.read()
 					if (configfileString.indexOf("<name>elec_produ_flow</name>") >-1) {
-						console.log("*********SolarPanel not mergin production because database is available ")
+						if (debugOutput) console.log("*********SolarPanel not mergin production because database is available ")
 						app.popupString = "Production databases reeds aanwezig" + "..." 
 					}
 					else{ //no production so lets create them
-						console.log("*********SolarPanel needtochange part 1")
+						if (debugOutput) console.log("*********SolarPanel needtochange part 1")
 						needReboot = true
 						var hcb_rrd_ConfigfileArray = configfileString.split("</Config>")
 						var mergeFileString = mergeFile1.read()
@@ -1285,11 +1327,11 @@ Screen {
 				try {
 					configfileString =  hcb_rrd_Configfile.read()
 					if ((configfileString.indexOf("<name>elec_solar_quantity</name>") > -1 )  ||  (configfileString.indexOf("<name>elec_solar_quantity</name>") >-1)) {
-						console.log("*********SolarPanel not mergin solar because database is available ")
+						if (debugOutput) console.log("*********SolarPanel not mergin solar because database is available ")
 						app.popupString = "Solar databases reeds aanwezig" + "..." 
 					}
 					else{//no solar so lets create them
-						console.log("*********SolarPanel needtochange part 2")
+						if (debugOutput) console.log("*********SolarPanel needtochange part 2")
 						needReboot = true
 						var hcb_rrd_ConfigfileArray = configfileString.split("</Config>")
 						var mergeFileString = mergeFile2.read()
@@ -1331,7 +1373,7 @@ Screen {
 					else {
 						var n200 = configfileString.indexOf('<futureBins>',n100)
 						var n201 = configfileString.indexOf('</futureBins>',n200)
-						console.log("*********SolarPanel <futureBins> : " + configfileString.substring(n200, n201))
+						if (debugOutput) console.log("*********SolarPanel <futureBins> : " + configfileString.substring(n200, n201))
 						
 						if (configfileString.substring(n200, n201) == "<futureBins>0"){
 							rewrite_hcb_rrd = true
@@ -1341,11 +1383,11 @@ Screen {
 						}
 						var n203 = configfileString.indexOf('<futureBins>',n201)
 						var n204 = configfileString.indexOf('</futureBins>',n203)
-						console.log("*********SolarPanel <futureBins>: " + configfileString.substring(n203, n204))
+						if (debugOutput) console.log("*********SolarPanel <futureBins>: " + configfileString.substring(n203, n204))
 						
 						if (configfileString.substring(n203, n204) == "<futureBins>0"){
 							rewrite_hcb_rrd = true
-							console.log("*********SolarPanel setting futureBins to 1 ")
+							if (debugOutput) console.log("*********SolarPanel setting futureBins to 1 ")
 							var newconfigfileString = configfileString.substring(0, n203) + "<futureBins>1" + configfileString.substring(n204, configfileString.length)
 							configfileString = newconfigfileString
 						}
@@ -1358,7 +1400,7 @@ Screen {
 						app.popupString = "Solar databases aangepast voor FutureBins" + "..."
 					}
 					else{
-						console.log("*********SolarPanel no need to rewrite hcb_rrd")
+						if (debugOutput) console.log("*********SolarPanel no need to rewrite hcb_rrd")
 						app.popupString = "FutureBins stonden reeds op 1" + "..." 
 					}
 				} catch(e) { }
@@ -1369,13 +1411,13 @@ Screen {
 			case 6: {
 				if (app.selectedInverter != selectedInverter  || wrongPlugin){
 					needRestart = true
-					console.log("*********SolarPanel downloading new inverter plugin")
-					console.log("*********SolarPanel downloading new inverter plugin : " + pluginUrl + onlinePluginFileName+ ".plugin.txt")
+					if (debugOutput) console.log("*********SolarPanel downloading new inverter plugin")
+					if (debugOutput) console.log("*********SolarPanel downloading new inverter plugin : " + pluginUrl + onlinePluginFileName+ ".plugin.txt")
 					var http = new XMLHttpRequest()
 					http.onreadystatechange=function() {
 						if (http.readyState === 4){
 							if (http.status === 200) {
-								console.log("*********SolarPanel new Plugin: " + http.responseText)
+								if (debugOutput) console.log("*********SolarPanel new Plugin: " + http.responseText)
 								pluginFile.write(http.responseText)
 								needRestart = true
 								app.popupString = "Plugin 1 opgehaald voor : " + selectedInverter + "..." 
@@ -1383,7 +1425,7 @@ Screen {
 								updated = true
 							}
 							else {
-								console.log("*********SolarPanel error retrieving new Plugin: " + http.status)
+								if (debugOutput) console.log("*********SolarPanel error retrieving new Plugin: " + http.status)
 								app.popupString = "Fout in ophalen van plugin 1 " + "..."  + http.status
 								updateSucces = false
 							}
@@ -1394,7 +1436,7 @@ Screen {
 					break;
 				}
 				else{
-					console.log("*********SolarPanel inverter (1) plugin does not have to change")
+					if (debugOutput) console.log("*********SolarPanel inverter (1) plugin does not have to change")
 					app.popupString = "Omvormer 1 niet gewijzigd" + "..." 
 				}
 				break;
@@ -1416,13 +1458,13 @@ Screen {
 			case 8: {
 				if ((app.selectedInverter2 != selectedInverter2  || wrongPlugin2) & tempInverterCount>1){
 					needRestart = true
-					console.log("*********SolarPanel downloading new inverter plugin")
-					console.log("*********SolarPanel downloading new inverter plugin : " + pluginUrl + onlinePluginFileName2+ ".plugin.txt")
+					if (debugOutput) console.log("*********SolarPanel downloading new inverter plugin")
+					if (debugOutput) console.log("*********SolarPanel downloading new inverter plugin : " + pluginUrl + onlinePluginFileName2+ ".plugin.txt")
 					var http = new XMLHttpRequest()
 					http.onreadystatechange=function() {
 						if (http.readyState === 4){
 							if (http.status === 200) {
-								console.log("*********SolarPanel new Plugin2: " + http.responseText)
+								if (debugOutput) console.log("*********SolarPanel new Plugin2: " + http.responseText)
 								pluginFile2.write(http.responseText)
 								needRestart = true
 								app.popupString = "Plugin 2 opgehaald voor : " + selectedInverter2 + "..." 
@@ -1430,7 +1472,7 @@ Screen {
 								updated2 = true
 							}
 							else {
-								console.log("*********SolarPanel error retrieving new Plugin2: " + http.status)
+								if (debugOutput) console.log("*********SolarPanel error retrieving new Plugin2: " + http.status)
 								app.popupString = "Fout in ophalen van plugin 2 " + "..."  + http.status
 								updateSucces2 = false
 							}
@@ -1441,7 +1483,7 @@ Screen {
 					break;
 				}
 				else{
-					console.log("*********SolarPanel inverter plugin 2 does not have to change")
+					if (debugOutput) console.log("*********SolarPanel inverter plugin 2 does not have to change")
 					if (tempInverterCount>1){
 						app.popupString = "Omvormer 2 niet gewijzigd" + "..." 
 					}else{
@@ -1469,14 +1511,14 @@ Screen {
 			
 			
 			case 10: {
-				console.log("*********SolarPanel save app setting")
+				if (debugOutput) console.log("*********SolarPanel save app setting")
 				app.inverterCount = tempInverterCount
 				app.selectedInverter = selectedInverter
 				app.passWord = tempPassWord
 				app.userName = tempUserName
 				app.siteID = tempSiteID
 				if(selectedInverter.toLowerCase() == "foxcloud"){tempApiKey = ""}
-				if(selectedInverter.toLowerCase() == "Enphase V4-2"){tempApiKey = ""}
+				if(selectedInverter.toLowerCase() == "Enphase T"){tempApiKey = ""}
 				app.apiKey = tempApiKey
 				app.urlString = tempURL
 				app.idx = tempApiKey
@@ -1486,7 +1528,7 @@ Screen {
 				app.userName2 = tempUserName2
 				app.siteID2 = tempSiteID2
 				if(selectedInverter2.toLowerCase() == "foxcloud"){tempApiKey2 = ""}
-				if(selectedInverter2.toLowerCase() == "Enphase V4-2"){tempApiKey2 = ""}
+				if(selectedInverter2.toLowerCase() == "Enphase T"){tempApiKey2 = ""}
 				app.apiKey2 = tempApiKey2
 				app.urlString2 = tempURL2
 				app.idx2 = tempApiKey2
@@ -1498,7 +1540,7 @@ Screen {
 				
 			case 11: {
 				if (!needRestart && !needReboot) {
-					console.log("*********SolarPanel no changes so no need to restart")
+					if (debugOutput) console.log("*********SolarPanel no changes so no need to restart")
 					app.popupString = "Restart niet nodig" + "..." 
 					app.solarRebootPopup.hide()
 					configChangeStep = 20
@@ -1510,7 +1552,7 @@ Screen {
 			}
 			case 12: {
 				if ((needRestart || needReboot) && (updateSucces||updateSucces2)) {
-					console.log("*********SolarPanel creating backup of config_rdd ")
+					if (debugOutput) console.log("*********SolarPanel creating backup of config_rdd ")
 					hcb_rrd_Configfile_bak.write(oldconfigfileString)
 					app.popupString = "Backup van config_rdd maken" + "..." 
 				}
@@ -1518,7 +1560,7 @@ Screen {
 			}
 			case 13: {
 				if  ((needRestart || needReboot) && (updateSucces||updateSucces2)) {
-					console.log("*********SolarPanel creating backup of config scsync ")
+					if (debugOutput) console.log("*********SolarPanel creating backup of config scsync ")
 					hcb_scsync_Configfile_bak.write(oldConfigScsyncFileString)
 					app.popupString = "Backup van config_scsync maken" + "..." 
 				}
@@ -1527,8 +1569,8 @@ Screen {
 			
 			case 14: {
 				if (needRestart && !needReboot && (updateSucces||updateSucces2) ) {
-					console.log("*********SolarPanel restart")
-					console.log("*********SolarPanel restartingToon")
+					if (debugOutput) console.log("*********SolarPanel restart")
+					if (debugOutput) console.log("*********SolarPanel restartingToon")
 					app.popupString = "Herstarten van Toon" + "..." 
 					app.solarRebootPopup.hide()
 					Qt.quit();
@@ -1538,8 +1580,8 @@ Screen {
 			
 			case 15: {
 				if (needReboot) {
-					console.log("*********SolarPanel reboot")
-					console.log("*********SolarPanel restartingToon")
+					if (debugOutput) console.log("*********SolarPanel reboot")
+					if (debugOutput) console.log("*********SolarPanel restartingToon")
 					app.popupString = "Rebooten van Toon" + "..." 
 					app.solarRebootPopup.hide()
 					app.restartToon()
@@ -1547,7 +1589,7 @@ Screen {
 				break;
 			}
 			default: {
-				console.log("*********SolarPanel to default case ")
+				if (debugOutput) console.log("*********SolarPanel to default case ")
 				app.solarRebootPopup.hide()
 				configChangeStep = 20
 				stepRunning = false
