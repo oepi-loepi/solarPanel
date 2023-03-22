@@ -1,86 +1,85 @@
-/////////             <version>1.0.0</version>
-/////////                     ZONNEPLAN1                        /////////////
-/////////  Plugin to extract Zonneplan data for Toon  ///////////////
+/////////             <version>1.0.13</version>
+/////////                     GROW1                        /////////////
+/////////  Plugin to extract Growatt Solar data for Toon  ///////////////
 /////////                   By Oepi-Loepi                  ///////////////
 
 	function getSolarData(passWord,userName,apiKey,siteid,urlString,totalValue){
-            if (debugOutput) console.log("*********SolarPanel Start getSolarData")
-				var http = new XMLHttpRequest()
-				var url = "https://app-api.zonneplan.nl/user-accounts/me"
-				console.log("*********SolarPanel url " + url)
-				console.log("*********SolarPanel token " + zonneplanToken)
-				http.open("GET", url, true)
-				http.setRequestHeader("content-type", "application/json;charset=utf-8");
-				http.setRequestHeader("x-app-version","2.1.1");
-				http.setRequestHeader("Authorization", "Bearer " + zonneplanToken);
-				http.withCredentials = true; http.onreadystatechange = function() { // Call a function when the state changes.
-				if (http.readyState === 4) {
-					if (http.status === 200) {
-						console.log("*********SolarPanel http.responseText " + http.responseText)
-						var JsonString = http.responseText
-						var JsonObject= JSON.parse(JsonString)
-						var connect = JsonObject.data.address_groups[0].connections[0].uuid
-						var totalPower = JsonObject.data.address_groups[0].connections[0].contracts[0].meta.total_power_measured
-						var lastPower = JsonObject.data.address_groups[0].connections[0].contracts[0].meta.last_measured_power_value
-						console.log("*********SolarPanel connect : " + connect)
-						console.log("*********SolarPanel lastPower : " + lastPower)
-						console.log("*********SolarPanel totalPower : " + totalPower)
-						getStep2(connect,lastPower,totalPower)
-					} else {
-						parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
-						if (http.status === 401){
-							console.log("*********SolarPanel token failesd -> getnewToken")
-							SolarGeneral.getZonneplanRefreshToken()
-						}
-					}
-				}
+		if (debugOutput) console.log("*********SolarPanel Start getGrowattStep1")
+		//modified hash : if first of pairs  is 0 then replace by c
+		var newpass= Qt.md5(passWord)
+		var newString =""
+		for(var x = 0;x < newpass.length ;x++){
+			if ((x%2 == 0) && newpass[x] == "0") {
+				newString += "c"
 			}
-            http.send();
-    }
-
-    function getStep2(connect,lastPower,totalPower){
-			console.log("*********SolarPanel Start getStep2")
-			var http = new XMLHttpRequest()
-			var url = "https://app-api.zonneplan.nl/connections/" + connect + "/pv_installation/charts/live"
-			console.log("*********SolarPanel url" + url)
-			http.open("GET", url, true);
-			http.setRequestHeader("content-type", "application/json;charset=utf-8");
-			http.setRequestHeader("x-app-version","2.1.1");
-			http.setRequestHeader("Authorization", "Bearer " + zonneplanToken);
-			http.withCredentials = true;http.onreadystatechange = function() { // Call a function when the state changes.
+			else{
+				newString += newpass[x]
+			}
+		}
+		var params = "password=" + newString + "&userName=" + userName
+		var http = new XMLHttpRequest()
+		var url2 = "https://server-api.growatt.com/newTwoLoginAPI.do"
+		console.log("*********SolarPanel  url2" +  url2)
+		http.open("POST", url2, true)
+		http.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+		http.setRequestHeader("Content-length", params.length)
+		http.setRequestHeader("Connection", "keep-alive")
+		http.setUserAgent = "ShinePhone/5.92 (iPad; iOS 14.6; Scale/2.00)"
+        http.onreadystatechange = function() { // Call a function when the state changes.
 			if (http.readyState === 4) {
 				if (http.status === 200) {
-					try {
-
-						console.log("*********SolarPanel http.responseText " + http.responseText)
-
-                        var JsonString = http.responseText
-                        var JsonObject= JSON.parse(JsonString)
-                        //var lastvalue = JsonObject.data[0].measurements[JsonObject.data[0].measurements.length-1].value
-                        var today2 = parseInt(JsonObject.data[0].total)
-
-                        console.log("*********SolarPanel lastPower : " + lastPower)
-                        console.log("*********SolarPanel todayvalue : " + today2)
-                        console.log("*********SolarPanel totalPower : " + totalPower)
-
-						var JsonString = http.responseText
-						var JsonObject= JSON.parse(JsonString)
-						currentPower = parseInt(lastPower)
-						todayValue= today2
-						totalValue= parseInt(totalPower)
-						console.log("*********SolarPanel parseInt(blblbtodayValue) : " + parseInt(todayValue))
-						//parseReturnData(currentPower,totalValue, today2,0,0,0,0,http.status,"succes")
-					}
-					catch (e){
-						currentPower = 0
-						parseReturnData(0,totalValue,todayValue,0,0,0,0, http.status,"error")
-					}
+					var JsonString = http.responseText
+					if (debugOutput) console.log("*********SolarPanel JsonString " +  JsonString)
+					var JsonObject= JSON.parse(JsonString)
+					getGrowattStep2();
 				} else {
+					if (debugOutput) console.log("*********SolarPanel  getGrowattStep2 http.status " +  http.status)
+					currentPower = 0
 					parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
 				}
 			}
 		}
-		http.send();
+		http.send(params);
     }
 	
-	
+
+
+	function getGrowattStep2(){
+		if (debugOutput) console.log("*********SolarPanel Start getGrowattStep3")
+		var http = new XMLHttpRequest()
+		var params = "language=5"
+		var url2 = "https://server-api.growatt.com/newPlantAPI.do?action=getUserCenterEnertyDataTwo"
+		console.log("*********SolarPanel  url2 " +  url2)
+		http.open("GET", url2, true)
+		http.setRequestHeader("Content-type", "application/x-www-form-urlencoded")
+		http.setRequestHeader("Content-length", params.length)
+		http.setRequestHeader("Connection", "keep-alive")
+		http.setUserAgent = "ShinePhone/5.92 (iPad; iOS 14.6; Scale/2.00)"
+		http.onreadystatechange = function() { // Call a function when the state changes.
+			if (http.readyState === 4) {
+				if (http.status === 200) {
+					try {
+						var JsonString = http.responseText
+						if (debugOutput) console.log("*********SolarPanel JsonString " +  JsonString)
+						var JsonObject= JSON.parse(JsonString)
+						currentPower = parseInt(JsonObject.powerValue)
+						if (debugOutput) console.log("currentPower: " + currentPower)
+						var today2 = Math.floor((JsonObject.todayValue)*1000)
+						if (debugOutput) console.log("today2: " + today2)
+						totalValue= Math.floor((JsonObject.totalValue)*1000)
+						if (debugOutput) console.log("totalValue: " + totalValue)
+						 //getGrowattStep3()
+						parseReturnData(currentPower,totalValue,today2,0,0,0,0,http.status,"succes")
+					}
+					catch (e){
+						currentPower = 0
+						parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
+					}
+				} else {
+					if (debugOutput) console.log("*********SolarPanel  getGrowattStep3 http.status " +  http.status)
+					parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
+				}
+			}
+		}
+		http.send(params);
+	}

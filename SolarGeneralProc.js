@@ -39,11 +39,26 @@ function getSettings(){
 	} catch(e) {
 	}
 	
-	if (selectedInverter == "Zonneplan"){
+	if (selectedInverter == "Zonneplan T"){
 		zonneplan=true
-		getZonneplanRefreshToken()
 	}else{
 		zonneplan=false
+	}
+	if (selectedInverter2 == "Zonneplan T"){
+		zonneplan2=true
+	}else{
+		zonneplan2=false
+	}
+	
+	if (selectedInverter == "Enphase T"){
+		enphase=true
+	}else{
+		enphase=false
+	}
+	if (selectedInverter2 == "Enphase T"){
+		enphase2=true
+	}else{
+		enphase2=false
 	}
 }
 ///////////////////////////////////////// SAVE ALL TO SETTINGS ///////////////////////////////////////////////////////////////////////////////////////////////// 
@@ -99,10 +114,15 @@ function clearAllArrays(){
 function checkInvertersOnStart(){
 	
 	//check if plugin matches the selectedinverter
+	
+	var needRefresh1 = false
+	var needRefresh2 = false
+	var needRestart = false
 	var pluginFileString = pluginFile.read()
 	if (debugOutput) console.log("*********SolarPanel pluginFile.read() : " + pluginFile.read())
 	if (debugOutput) console.log("*********SolarPanel onlinePluginFileName : " + onlinePluginFileName)
 	if (pluginFileString.indexOf(onlinePluginFileName)<0 || selectedInverter==""  || onlinePluginFileName =="" ){//wrong plugin
+		needRefresh1 = true
 		if (debugOutput) console.log("*********SolarPanel wrong plugin : ")
 		if (debugOutput) console.log("*********SolarPanel has wrong plugin when first started")
 		pluginWarning = "Selecteer Inverter (1)"
@@ -115,6 +135,7 @@ function checkInvertersOnStart(){
 		if (debugOutput) console.log("*********SolarPanel pluginFile2.read() : " + pluginFile2.read())
 		if (debugOutput) console.log("*********SolarPanel onlinePluginFileName2 : " + onlinePluginFileName2)
 		if (pluginFileString2.indexOf(onlinePluginFileName2)<0 || selectedInverter2==""  || onlinePluginFileName2 =="" ){//wrong plugin
+			needRefresh2 = true
 			if (debugOutput) console.log("*********SolarPanel wrong plugin2 : ")
 			if (debugOutput) console.log("*********SolarPanel has wrong plugin2 when first started")
 			pluginWarning = "Selecteer Inverter (2)"
@@ -122,7 +143,78 @@ function checkInvertersOnStart(){
 			pluginWarning = ""
 		}
 	}
+
+
+	if(needRefresh1){
+		var url = pluginUrl + onlinePluginFileName+ ".plugin.txt"
+		console.log("*********SolarPanel downloading new inverter plugin : " + url)
+		var http = new XMLHttpRequest()
+		http.onreadystatechange=function() {
+			if (http.readyState === 4){
+				if (http.status === 200) {
+					if (debugOutput) console.log("*********SolarPanel new Plugin1: " + http.responseText)
+					if(http.responseText.indexOf(onlinePluginFileName)>0){
+						pluginFile.write(http.responseText)
+						needRestart = true
+						popupString = "Plugin 1 opgehaald voor : " + selectedInverter + "... herstarten"
+						solarRebootPopup.show()						
+					}
+				}
+				else {
+					if (debugOutput) console.log("*********SolarPanel error retrieving new Plugin2: " + http.status)
+					popupString = "Fout in ophalen van plugin 1 " + "..."  + http.status
+				}
+			}
+		}
+		http.open("GET",url , true)
+		http.send()
+	}
+
+	if(needRefresh2){
+		if (debugOutput) console.log("*********SolarPanel downloading new inverter plugin 2: " + pluginUrl + onlinePluginFileName2+ ".plugin.txt")
+		var http = new XMLHttpRequest()
+		http.onreadystatechange=function() {
+			if (http.readyState === 4){
+				if (http.status === 200) {
+					if (debugOutput) console.log("*********SolarPanel new Plugin 2: " + http.responseText)
+					if(http.responseText.indexOf(onlinePluginFileName2)>0){
+						pluginFile2.write(http.responseText)
+						needRestart = true
+						popupString = "Plugin 2 opgehaald voor : " + selectedInverter2 + "... herstarten"
+						solarRebootPopup.show()
+					}
+				}
+				else {
+					if (debugOutput) console.log("*********SolarPanel error retrieving new Plugin2: " + http.status)
+					popupString = "Fout in ophalen van plugin 1 " + "..."  + http.status
+				}
+			}
+		}
+		http.open("GET",pluginUrl + onlinePluginFileName2+ ".plugin.txt"  , true)
+		http.send()
+	}
+
+	var onetime = true
+	solarDelay(30000, function() {
+		if (onetime){
+			if (debugOutput) console.log("*********SolarPanel restart timer ended")
+			if (debugOutput) console.log("*********SolarPanel needRestart: " + needRestart)
+			if (debugOutput) console.log("*********SolarPanel needRefresh1: " + needRefresh1)
+			if (debugOutput) console.log("*********SolarPanel needRefresh2: " + needRefresh2)
+			onetime = false
+			if(needRestart & (needRefresh1 || needRefresh2)){
+				if (debugOutput) console.log("*********SolarPanel restart")
+				if (debugOutput) console.log("*********SolarPanel restartingToon")
+				popupString = "Herstarten van Toon" + "..." 
+				solarRebootPopup.hide()
+				Qt.quit();
+			}
+		}
+	})
 }
+
+
+
 /////////////////////////////////////////////////////////////// GET ALL SAVED DATA //////////////////////////////////////////
 
 function getAllSavedData(){
@@ -138,7 +230,7 @@ function getAllSavedData(){
 		if (debugOutput) console.log("*********SolarPanel lastFiveDays[i]: " + lastFiveDays[i])
 		if (!isNaN(lastFiveDays[i]) & (parseInt(lastFiveDays[i])>0)){
 				totalForAvg = totalForAvg + parseInt(lastFiveDays[i])
-				if (debugOutput) cconsole.log("*********SolarPanel parsed lastFiveDays[i]: " + lastFiveDays[i])
+				if (debugOutput) console.log("*********SolarPanel parsed lastFiveDays[i]: " + lastFiveDays[i])
 				avgcounter ++
 			}
 		}
@@ -286,6 +378,7 @@ http.send()
 
 }
 
+
 function getProductionLt(host){
 
 if (debugOutput) console.log("*********SolarPanel getProductionLt")
@@ -357,43 +450,4 @@ function push10yrdaysData(){
 }
 
 
-function getZonneplanRefreshToken(){
 
-	if (debugOutput) console.log("*********SolarPanel Start getZonneplanRefreshToken()")
-	
-	var http = new XMLHttpRequest()
-	var url = "https://app-api.zonneplan.nl/oauth/token"
-	var rfToken = ""
-	try{
-		rfToken = (solarPanel_refreshtoken.read()).trim()
-	}catch(e) {
-	}
-	if (debugOutput) console.log("*********SolarPanel refreshtoken " + rfToken)
-	var params = "{\"grant_type\": \"refresh_token\",\"refresh_token\": \"" + rfToken + "\"}"
-	if (debugOutput) console.log("*********SolarPanel url " + url)
-	if (debugOutput) console.log("*********SolarPanel params : " + params)
-	http.open("POST", url, true);
-	http.setRequestHeader("content-type", "application/json;charset=utf-8");
-	http.setRequestHeader("x-app-version","2.1.1");
-	http.withCredentials = true;
-	http.onreadystatechange = function() { // Call a function when the state changes.
-		if (debugOutput) console.log("*********SolarPanel refreshtoken readyState" + http.readyState)
-		if (http.readyState === 4) {
-			if (http.status === 200) {
-				if (debugOutput) console.log("*********SolarPanel http.responseText " + http.responseText)
-				var JsonString = http.responseText
-				var JsonObject= JSON.parse(JsonString)
-				zonneplanToken = JsonObject.access_token
-				zonneplanRefreshToken = JsonObject.refresh_token
-				if (debugOutput) console.log("*********SolarPanel token : " + zonneplanToken)
-				if (debugOutput) console.log("*********SolarPanel RefreshToken : " + zonneplanRefreshToken)
-				if (debugOutput) console.log("*********SolarPanel save refreshtoken" )
-				solarPanel_refreshtoken.write(zonneplanRefreshToken)
-				scrapeTimer.interval = 20000
-			} else {
-				if (debugOutput) console.log("*********SolarPanel refreshtoken http.status error " + http.status)
-			}
-		}
-	}
-	http.send(params);
-}
