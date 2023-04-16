@@ -19,7 +19,7 @@ import "SolarGeneralProc.js" as SolarGeneral
 App {
 	id: solarPanelApp
 
-	property bool 	debugOutput : true	// Show console messages. Turn on in settings file !
+	property bool 	debugOutput : false	// Show console messages. Turn on in settings file !
 	
 	property url 	tileUrl : "SolarPanelTile.qml"
 	property url 	tileUrl2 : "SolarPanelTile2.qml"
