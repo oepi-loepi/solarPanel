@@ -1,3 +1,5 @@
+1.4.8 	external tsc script option added for Huawei
+
 1.4.7 	external tsc script option added for Zonneplan and Ephase
 
 1.4.6
