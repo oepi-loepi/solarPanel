@@ -143,6 +143,7 @@ App {
 	property bool 	enphase : false
 	property bool 	enphase2 : false
 	
+	
 	property variant solarpanelSettingsJson : {
 			'inverterCount': "1",
 			'selectedInverter': "",
@@ -265,12 +266,12 @@ App {
 					todayValue = parseInt(v2) + inverter1Day
 				}
 
-				if (debugOutput) console.log("*********SolarPanel dtime: " + dtime)
-				if (debugOutput) console.log("*********SolarPanel statuscode:" + v7)
-				if (debugOutput) console.log("*********SolarPanel currentPower:" + currentPower)
-				if (debugOutput) console.log("*********SolarPanel total:" + totalValue)
-				if (debugOutput) console.log("*********SolarPanel yesterdayTotal: " + yesterdayTotal)
-				if (debugOutput) console.log("*********SolarPanel totalValue: " + totalValue)
+				if (debugOutput) console.log("*********SolarPanel parsed dtime: " + dtime)
+				if (debugOutput) console.log("*********SolarPanel parsed statuscode:" + v7)
+				if (debugOutput) console.log("*********SolarPanel parsed currentPower:" + currentPower)
+				if (debugOutput) console.log("*********SolarPanel parsed total:" + totalValue)
+				if (debugOutput) console.log("*********SolarPanel parsed yesterdayTotal: " + yesterdayTotal)
+				if (debugOutput) console.log("*********SolarPanel parsed totalValue: " + totalValue)
 				doData()
 			}
 			if (v8 == "error"){
@@ -294,7 +295,7 @@ App {
     function doData(){
 	
 		doEachtimeStuff()
-	
+			
 		if (dtime>=500 & dtime<2300){  //it is daytime
 			doOnlyDuringDayTimeStuff()
 		}
@@ -519,6 +520,9 @@ App {
 			SolarGeneral.getProductionLt("localhost")
 		}
     }
+	
+	
+	
     Timer {//
 		id: scrapeTimer   //interval to get the solar data
 		interval: 30000
@@ -632,6 +636,7 @@ App {
 	function solarEnphaseDelayStop() {
        solarEnphase.stop()
     }
+	
 	
 	
 }

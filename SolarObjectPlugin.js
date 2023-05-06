@@ -1,255 +1,161 @@
-/////////             <version>1.0.0</version>
-/////////                     ZONNEPLAN-T1                        /////////////
-/////////  Plugin to extract Zonneplan data for Toon  ///////////////
+/////////             <version>1.0.13</version>
+/////////                     GROW1                        /////////////
+/////////  Plugin to extract Growatt Solar data for Toon  ///////////////
 /////////                   By Oepi-Loepi                  ///////////////
 
-	function getSolarData(passWord,userName,apiKey,siteid,urlString,totalValue){
-		if (debugOutput) console.log("*********SolarPanel Start getSolarData")
-		if (getDataCount == 0){getZonneplanStep1(1);}
-		if (getDataCount == 1){getZonneplanStep1(2);}
+
+	function base64 (input) {
+        var result = '', binData, i;
+        var base64Alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/='.split(''); // Base is 65 in fact :-)
+        if (typeof input === 'string') for (i = 0, input = input.split(''); i < input.length; i++) input[i] = input[i].charCodeAt(0);
+        for (i = 0; i < input.length; i += 3) {
+            binData = (input[i] & 0xFF) << 16 |     // FF.00.00
+                      (input[i + 1] & 0xFF) << 8 |  // 00.FF.00
+                      (input[i + 2] & 0xFF);        // 00.00.FF
+            result += base64Alphabet[(binData & 0xFC0000) >>> 18] +                   //11111100.00000000.00000000 = 0xFC0000 = 16515072
+                      base64Alphabet[(binData & 0x03F000) >>> 12] +                   //00000011.11110000.00000000 = 0x03F000 = 258048
+                      base64Alphabet[( i + 3 >= input.length && (input.length << 1) % 3 === 2 ? 64 :
+                                         (binData & 0x000FC0) >>> 6 )] +              //00000000.00001111.11000000 = 0x000FC0 = 4032
+                      base64Alphabet[( i + 3 >= input.length && (input.length << 1) % 3 ? 64 :
+                                      binData & 0x00003F )];                          //00000000.00000000.00111111 = 0x00003F = 63
+        }
+        return result;
     }
 
 
-
-//Het token is verlopen, haal een nieuw token en een nieuw refreshtoken
-	function getZonneplanRefreshToken(number){
-		if (debugOutput) console.log("*********SolarPanel Start getZonneplanRefreshToken(" + number + ")" )
-		var rfToken = ""
-		try{
-			if(number===1){
-				rfToken = (solarPanel_refreshtoken.read()).trim()
-			}else{
-				rfToken = (solarPanel_refreshtoken2.read()).trim()
-			}
-		}catch(e) {
-		}
-		if (debugOutput) console.log("*********SolarPanel refreshtoken " + rfToken)
-		if (rfToken.length <1){
-			if (debugOutput) console.log("*********SolarPanel refreshtoken empty -> aborting")
-		}else{
-			if (debugOutput) console.log("*********SolarPanel haal de zonneplan info op via tsc command")
-			var doc2 = new XMLHttpRequest()
-			doc2.open("PUT", "file:///tmp/zonneplan_refresh.txt")
-			doc2.send(rfToken)
-			
-			var doc4 = new XMLHttpRequest()
-			doc4.open("PUT", "file:///tmp/tsc.command")
-			doc4.send("external-solarPanel")
-			
-			//wacht op een response vanuit het TSC script
-			var onetime = true
-			zonneplanDelay(8000, function() {
-				if (onetime){
-					onetime = false
-					parseRefreshToken(number)
-				}
-			})
-		}
-	}
-
-//verwerk de gegevens uit het TSC scipt voor de nieuwe tokens
-	function parseRefreshToken(number){
-		if (debugOutput) console.log("*********SolarPanel Start Zonneplan parseRefreshToken()")
-		var http = new XMLHttpRequest()
-		var url = "file:///tmp/zonneplan_tokens.txt"
-		if (debugOutput) console.log("*********SolarPanel url " + url)
-		http.open("GET", url, true);
-		http.onreadystatechange = function() { // Call a function when the state changes.
-			 if (http.readyState === 4) {
-					if (http.status === 200) {
-						if (debugOutput) console.log("*********SolarPanel http.responseText " + http.responseText)
-						if(http.responseText.toLowerCase().indexOf('token is invalid')>-1){
-							if (debugOutput) console.log("*********SolarPanel token failed -> aborting")
-							pluginWarning = "Foutieve inlog"
-							if(number===1){
-								zonneplanRefreshToken = ""
-							}else{
-								zonneplanRefreshToken2 = ""
-							}
-							parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
-						}else{
-							var JsonString = http.responseText
-							var JsonObject= JSON.parse(JsonString)
-							if (JsonObject.access_token)
-							if(number===1){
-								zonneplanToken = JsonObject.access_token
-								zonneplanRefreshToken = JsonObject.refresh_token
-								if (debugOutput) console.log("*********SolarPanel token : " + zonneplanToken)
-								if (debugOutput) console.log("*********SolarPanel RefreshToken : " + zonneplanRefreshToken)
-								if (debugOutput) console.log("*********SolarPanel save refreshtoken" )
-								solarPanel_refreshtoken.write(zonneplanRefreshToken)
-							}else{
-								zonneplanToken2 = JsonObject.access_token
-								zonneplanRefreshToken2 = JsonObject.refresh_token
-								if (debugOutput) console.log("*********SolarPanel token : " + zonneplanToken2)
-								if (debugOutput) console.log("*********SolarPanel RefreshToken2 : " + zonneplanRefreshToken2)
-								if (debugOutput) console.log("*********SolarPanel save refreshtoken2" )
-								solarPanel_refreshtoken2.write(zonneplanRefreshToken2)
-							}
-						}
-					} else {
-						console.log("error: " + http.status)
-					}
-			}
-		}
-		http.send();
-	}
+     function hexStr2bin(str) {
+        str = str.replace(/[^0-9^a-f]/ig, ''); // Cutting off the garbage.
+        if (str.length & 1) return false; // Oh, this is not hex string (len % 2 !== 0).
+        var result = [], i;
+        for (i = 0; i < str.length; i += 2) {
+            result[result.length] = parseInt(str.substr(i, 2), 16);
+        }
+        return result;
+    }
 
 
-//haal periodiek data van de site
-	function getZonneplanStep1(number){
-		if (debugOutput) console.log("*********SolarPanel Start getZonneplanStep1()")
-		if (debugOutput) console.log("*********SolarPanel haal de zonneplan info op via tsc command")
-		if(number===1){
-			if (debugOutput) console.log("*********SolarPanel token " + zonneplanToken)
-		}else{
-			if (debugOutput) console.log("*********SolarPanel token " + zonneplanToken2)
-		}
-		
-		var doc2 = new XMLHttpRequest();
-		doc2.open("PUT", "file:///tmp/zonneplan_step1.txt");
-		if(number===1){
-			doc2.send(zonneplanToken)
-		}else{
-			doc2.send(zonneplanToken2)
-		}
-		
-		var doc4 = new XMLHttpRequest();
-		doc4.open("PUT", "file:///tmp/tsc.command");
-		doc4.send("external-solarPanel");
-		
-		//wacht op een response vanuit het TSC script
+	function getSolarData(passWord,userName,apiKey,siteid,urlString,totalValue){
+		if (debugOutput) console.log("*********SolarPanel Start getSolisStep1")
+		var body = "{\"pageNo\":1,\"pageSize\":10}"
+		var keyId= "1300386381676583396"
+		var keySecret = "f7f6497ca48c471493fd5b5a3ef56b85"
+		var port = "13333"
+
+        var result = ''
+        var reqDate = new Date()
+        var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        var dayArray=['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        var strArray=['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        var wd = dayArray[reqDate.getDay()]
+        var d = reqDate.getDate()
+        var m = strArray[reqDate.getMonth()]
+        var y = reqDate.getFullYear()
+
+        var h = reqDate.getUTCHours()
+        var min = reqDate.getMinutes()
+        var s = reqDate.getSeconds()
+
+        if (h.toString().length == 1) {
+          h = "0" + h;
+        }
+
+        if (min.toString().length == 1) {
+          min = "0" + min;
+        }
+        if (s.toString().length == 1) {
+         s = "0" + s;
+        }
+
+        var newDate =  wd + ", " + d + " " + m + " " + y + " " + h + ":" + min + ":" + s + " GMT"
+        var newDateEncoded =encodeURI(newDate)
+
+        var encryptedBody= Qt.md5(body)
+        encryptedBody = base64( hexStr2bin(encryptedBody) )
+        //console.log(encryptedBody)
+        var encryptedBodyEncoded = encodeURI(encryptedBody)
+        //console.log(encryptedBodyEncoded)
+
+        var xhr = new XMLHttpRequest()
+        var url = "https://codedev.tools/CryptoSecurity/GetHmacGenerator?text=POST%0A" + encryptedBodyEncoded + "%0Aapplication%2Fjson%0A" + newDate + "%0A%2Fv1%2Fapi%2FuserStationList&algorithm=SHA1&secretKey=" + keySecret
+        
 		var onetime = true
-		zonneplanDelay(8000, function() {
-			if (onetime){
-				onetime = false
-				if(number===1){
-					parseZonneplanStep1(1)
-				}else{
-					parseZonneplanStep1(2)
-				}
-			}
-		})
-	}
+		xhr.open("GET", url, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200 || xhr.status === 300  || xhr.status === 302) {
+						if (debugOutput) console.log("xhr.status: " + xhr.status)
+						if (debugOutput) console.log("xhr.responseText: " + xhr.responseText)
+						var JsonObject= JSON.parse(xhr.responseText)
+						var encryptedHex = JsonObject.encryptedText
+						//console.log("encryptedHex : " + encryptedHex)
+						var encrypterdBase64 = base64( hexStr2bin(encryptedHex))
+						//console.log("encrypterdBase64 : " + encrypterdBase64)
+						var auth =  "API " + keyId + ":" + encrypterdBase64
+						var body = "{\"pageNo\":1,\"pageSize\":10}"
 
+						console.log("---------------------------------------------------------------")
+						console.log("Content-MD5: " + encryptedBody)
+						console.log("Content-Type: application/json")
+						console.log("Date: " + newDate)
+						console.log("Authorization: " + auth)
+						console.log("Port： " + port)
+						
+						var doc2 = new XMLHttpRequest();
+						doc2.open("PUT", "file:///tmp/solis.txt");
+						doc2.send(newDate + ";" + auth + ";" + port);
 
-	function parseZonneplanStep1(number){
-		console.log("*********SolarPanel Start Zonneplan parseZonneplanStep1()")
-		var http = new XMLHttpRequest()
-		var url = "file:///tmp/zonneplan_response_step1.txt"
-		if (debugOutput) console.log("*********SolarPanel url " + url)
-		http.open("GET", url, true);
-		http.onreadystatechange = function() { // Call a function when the state changes.
-			 if (http.readyState === 4) {
-					if (http.status === 200) {
-						if (debugOutput) console.log("*********SolarPanel http.responseText " + http.responseText)
-						var JsonString = http.responseText
-						if(http.responseText.toLowerCase().indexOf('unauthenticated')>-1){
-							if (debugOutput) console.log("*********SolarPanel token failed -> getnewToken")
-							if (getZonneplanRefreshToken(number).length >1){
-								getZonneplanRefreshToken(number)
+						var doc4 = new XMLHttpRequest();
+						doc4.open("PUT", "file:///tmp/tsc.command");
+						doc4.send("external-solarPanel");
+
+						//wacht op een response vanuit het TSC script
+						solarEnphaseDelay(8000, function() {
+							if (onetime){
+								onetime = false
+								parseSolisJson(totalValue)
 							}
-							if (debugOutput) console.log("*********SolarPanel http.status : " + http.status)
-							parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
-						}else{
-							var JsonObject= JSON.parse(JsonString)
-							if(number===1){
-								zonneplantotalPower = parseInt(JsonObject.data.address_groups[0].connections[0].contracts[0].meta.total_power_measured)
-								zonneplanlastPower = parseInt(JsonObject.data.address_groups[0].connections[0].contracts[0].meta.last_measured_power_value)
-								if (debugOutput) console.log("*********SolarPanel zonneplanlastPower : " + zonneplanlastPower)
-								if (debugOutput) console.log("*********SolarPanel zonneplantotalPower : " + zonneplantotalPower)
-							}else{
-								zonneplantotalPower2 = parseInt(JsonObject.data.address_groups[0].connections[0].contracts[0].meta.total_power_measured)
-								zonneplanlastPower2 = parseInt(JsonObject.data.address_groups[0].connections[0].contracts[0].meta.last_measured_power_value)
-								if (debugOutput) console.log("*********SolarPanel zonneplanlastPower2 : " + zonneplanlastPower2)
-								if (debugOutput) console.log("*********SolarPanel zonneplantotalPower2 : " + zonneplantotalPower2)
-							}
-							var connect = JsonObject.data.address_groups[0].connections[0].uuid
-							if (debugOutput) console.log("*********SolarPanel connect : " + connect)
-							getZonneplanStep2(connect,number)
-						}
-					} else {
-						console.log("error: " + http.status)
+						})
 					}
-			}
-		}
-		http.send();
-	}
-
-
-	function getZonneplanStep2(connect,number){
-		if (debugOutput) console.log("*********SolarPanel Start getZonneplanStep2()")
-		if (debugOutput) console.log("*********SolarPanel haal de zonneplan info op via tsc command")
-		if (debugOutput) console.log("*********SolarPanel connect " + connect)
-		
-		var doc2 = new XMLHttpRequest();
-		doc2.open("PUT", "file:///tmp/zonneplan_step2.txt");
-		if(number===1){
-			doc2.send(connect + ";" + zonneplanToken);
-		}else{
-			doc2.send(connect + ";" + zonneplanToken2);
-		}
-		
-		var doc4 = new XMLHttpRequest();
-		doc4.open("PUT", "file:///tmp/tsc.command");
-		doc4.send("external-solarPanel");
-		
-		var onetime = true
-		zonneplanDelay(8000, function() {
-			if (onetime){
-				onetime = false
-				parseZonneplanStep2(number)
-			}
-		})
-	}
-
-	function parseZonneplanStep2(number){
-		if (debugOutput) console.log("*********SolarPanel Start Zonneplan parseZonneplanStep2()")
-		var http = new XMLHttpRequest()
-		var url = "file:///tmp/zonneplan_response_step2.txt"
-		if (debugOutput) console.log("*********SolarPanel url " + url)
-		http.open("GET", url, true);
-		http.onreadystatechange = function() { // Call a function when the state changes.
-			 if (http.readyState === 4) {
-					if (http.status === 200) {
-						console.log("*********SolarPanel http.responseText " + http.responseText)
-						var JsonString = http.responseText
-						if(JsonString.toLowerCase().indexOf('unauthenticated')>-1){
-							if (debugOutput) console.log("*********SolarPanel token failed -> getnewToken")
-							getZonneplanRefreshToken(number)
-							if (debugOutput) console.log("*********SolarPanel http.status : " + http.status)
-							parseReturnData(0,totalValue,0,0,0,0,0, http.status,"error")
-						}else{
-							var JsonString = http.responseText
-							var JsonObject= JSON.parse(JsonString)
-							var today2 = parseInt(JsonObject.data[0].total)
-							if(number===1){
-								if (debugOutput) console.log("*********SolarPanel zonneplanlastPower  : " + zonneplanlastPower)
-								if (debugOutput) console.log("*********SolarPanel zonneplantotalPower : " + zonneplantotalPower)
-								var currentPowerLoc = parseInt(zonneplanlastPower)
-								var todayValueLoc= today2
-								var totalValueLoc= parseInt(zonneplantotalPower)
-							}else{
-								if (debugOutput) console.log("*********SolarPanel zonneplanlastPower2  : " + zonneplanlastPower2)
-								if (debugOutput) console.log("*********SolarPanel zonneplantotalPower2 : " + zonneplantotalPower2)
-								var currentPowerLoc = parseInt(zonneplanlastPower2)
-								var todayValueLoc= today2
-								var totalValueLoc= parseInt(zonneplantotalPower2)
-							}
-							if (debugOutput) console.log("*********SolarPanel parseInt(todayValue) : " + parseInt(todayValue))
-							parseReturnData(currentPowerLoc,totalValueLoc, todayValueLoc,0,0,0,0,http.status,"succes")
-						}
-					} else {
-						if (debugOutput) console.log("error: " + http.status)
+                }
+            }
+        xhr.send();
+    }
+	
+	function parseSolisJson(totalValue){
+         if (debugOutput) console.log("*********SolarPanel Start parseSolisJson")
+        var http = new XMLHttpRequest()
+        var url = "file:///tmp/solis_output.txt"
+        if (debugOutput) console.log("*********SolarPanel url: " + url)
+        http.open("GET", url, true);
+        http.onreadystatechange = function() { // Call a function when the state changes.
+            if (debugOutput) console.log("http.readyState: " + http.readyState)
+            if (http.readyState === XMLHttpRequest.DONE) {
+                if (debugOutput) console.log("http.status: " + http.status)
+                if (http.status === 200 || http.status === 300  || http.status === 302) {
+                    try {
+                        if (debugOutput) console.log("http.status: " + http.status)
+                        if (debugOutput) console.log(http.responseText)
+                        var JsonObject= JSON.parse(http.responseText)	
+						var today2=parseInt((JsonObject.data.page.records[0].dayEnergy) * 1000)
+						totalValue= parseInt((JsonObject.data.page.records[0].allEnergy) * 1000000)
+						currentPower = parseInt((JsonObject.data.page.records[0].power) * 1000)
+						if (debugOutput) console.log("*********SolarPanel currentPower: " + currentPower)
+						if (debugOutput) console.log("*********SolarPanel today2: " + today2)
+						if (debugOutput) console.log("*********SolarPanel totalValue: " + totalValue)
+						parseReturnData(currentPower,totalValue,today2,0,0,0,0,http.status,"succes")
+                    }
+                    catch (e){
+                        currentPower = 0
+                        parseReturnData(currentPower,totalValue,todayValue,0,0,0,0, http.status,"error")
+                    }
+                } else {
+					if (http.status === 401){
+						if (getDataCount == 0){apiKey = ""}
+                        if (getDataCount == 1){apiKey2 = ""}
 					}
-			}
-		}
-		http.send();
-	}
-	
-	
-	
-
-	
-	
-	
+                     parseReturnData(currentPower,totalValue,todayValue,0,0,0,0, http.status,"error")
+                }
+            }
+        }
+       http.send();
+    }
