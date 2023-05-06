@@ -207,4 +207,26 @@
 		rm /var/tmp/huaweistep1.txt
 	fi
 
+	if [ -s /var/tmp/solis.txt ]
+	then
+		DATESTR=`cat /var/tmp/solis.txt | cut -d ";" -f 1`
+		AUTH=`cat /var/tmp/solis.txt | cut -d ";" -f 2`
+		PORT=`cat /var/tmp/solis.txt | cut -d ";" -f 3`
+
+		echo "$(date '+%d/%m/%Y %H:%M:%S') Getting data for: $DATESTR"
+		echo "$(date '+%d/%m/%Y %H:%M:%S') Getting data for: $AUTH"
+		echo "$(date '+%d/%m/%Y %H:%M:%S') Getting data for: $PORT"
+		curl \
+		--data '{"pageNo":1,"pageSize":10}' \
+		--header "Content-type: application/json" \
+		--header "Content-MD5: kxdxk7rbAsrzSIWgEwhH4w==" \
+		--header "Date: $DATESTR" \
+		--header 'Body: {"pageNo":1,"pageSize":10}' \
+		--header "Authorization: $AUTH" \
+		-X POST "https://www.soliscloud.com:$PORT/v1/api/userStationList"\
+		>/var/tmp/solis_output.txt
+		rm /var/tmp/solis.txt
+	fi
+
+
 # Done

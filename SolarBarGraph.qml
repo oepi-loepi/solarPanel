@@ -67,6 +67,9 @@ Item {
     property int mMax
 	property int maxFormatted
 	property int barWidthAdjust
+	
+	property bool activeMe      : false
+
 
 	signal clicked()
 
@@ -75,23 +78,28 @@ Item {
         clicked()
     }
 	
-	Timer {
-        id: openTimer   //when opening screen
-        interval: 1000
-		repeat: false
-        running: true
-        triggeredOnStart: true
-        onTriggered: calculateValues()
+	
+	Component.onCompleted: {
+		calculateValues()
     }
 	
-	Timer {
-        id: intervalTimer   //when opening screen
-        interval: 30000
-		repeat: true
-        running: true
-        triggeredOnStart: false
-        onTriggered: calculateValues()
+    onVisibleChanged: {
+        if (visible) {
+            activeMe = true
+			calculateValues()
+        } else { 
+            activeMe = false
+        }
     }
+
+    Timer {
+        id                      : controlTimer
+        interval                : 30000
+        running                 : activeMe
+        repeat                  : true
+        onTriggered             : calculateValues()
+    }  
+
 	
 
 	function calculateValues(){
@@ -160,9 +168,6 @@ Item {
 		if(dataValues.length >= 5001) barWidthAdjust = 5000
 	}
 
-	Component.onCompleted: {
-		calculateValues()
-    }
 	
 	Rectangle {
         id: barGraphRect
