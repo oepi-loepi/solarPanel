@@ -19,7 +19,7 @@ import "SolarGeneralProc.js" as SolarGeneral
 App {
 	id: solarPanelApp
 
-	property bool 	debugOutput : true	// Show console messages. Turn on in settings file !
+	property bool 	debugOutput : false	// Show console messages. Turn on in settings file !
 	
 	property url 	tileUrl : "SolarPanelTile.qml"
 	property url 	tileUrl2 : "SolarPanelTile2.qml"
@@ -126,7 +126,8 @@ App {
 	property string apiKey2 : ""
     property string urlString2 : ""
 	property string idx2 : ""
-
+	
+	
 	property bool 	zonneplan : false
 	property bool 	zonneplan2 : false
 	property string zonneplanUUID: ""
@@ -143,7 +144,11 @@ App {
 	property bool 	enphase : false
 	property bool 	enphase2 : false
 	
-	
+	property string cachedToken : ""
+	property string cachedToken2 : ""
+	property int 	maxtries: 0
+
+
 	property variant solarpanelSettingsJson : {
 			'inverterCount': "1",
 			'selectedInverter': "",
@@ -218,14 +223,16 @@ App {
 ///////////////////////////////////////////////////////////////// GET DATA //////////////////////////////////////////////////////////////////////////////	
 
 	function getData(){
-	
+		
 		if (getDataCount == 0){
+			maxtries = 0
 			inverter1CurrentPower = 0
 			inverter1Day = 0
 			inverter1Total = 0
 			Solar.getSolarData(passWord,userName,apiKey,siteID,urlString, parseInt(totalValue))
 		}
 		if (getDataCount == 1){
+			maxtries = 0
 			Solar2.getSolarData(passWord2,userName2,apiKey2,siteID2,urlString2, parseInt(totalValue))
 		}
     }
