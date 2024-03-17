@@ -97,21 +97,21 @@
 		echo "$(date '+%d/%m/%Y %H:%M:%S') Getting approval for: $EMAIL"
 		echo "$(date '+%d/%m/%Y %H:%M:%S') Getting approval for: $PASSW"		
 
-		curl --location -k 'https://region01eu5.fusionsolar.huawei.com:32800/rest/neteco/appauthen/v1/smapp/app/token' \
+		curl --location -k 'https://intl.fusionsolar.huawei.com:32800/rest/neteco/appauthen/v1/smapp/app/token' \
 		-c /var/tmp/cookie.txt \
 		-b /var/tmp/cookie.txt \
 		--header 'Host: region01eu5.fusionsolar.huawei.com:32800' \
-		--header 'x-timezone-offset: 120' \
-		--header 'client-info: _manufacturer=iPad;_model=iPad;_os_ver=16.1.1;_os=iOS;_app_ver=6.23.205;_package_name=com.huawei.smartpvms;appClientId=92693FFB-6F2F-4717-96BF-BA033C7D72BC' \
+		--header 'x-timezone-offset: 60' \
+		--header 'client-info: _manufacturer=iPad;_model=iPad;_os_ver=17.3.1;_os=iOS;_app_ver=6.24.563;_package_name=com.huawei.smartpvms;appClientId=66E02141-3C1D-4DA3-A458-222B3032E4C4' \
 		--header 'Accept: */*' \
 		--header 'Accept-Encoding: gzip, deflate, br' \
 		--header 'Cache-Control: no-cache' \
 		--header 'Accept-Language: nl-NL;q=1' \
 		--header 'Content-Type: application/json' \
-		--header 'User-Agent: iCleanPower/6.23.205 (iPad; iOS 16.1.1; Scale/2.00)' \
+		--header 'User-Agent: iCleanPower/6.24.563 (iPad; iOS 17.3.1; Scale/2.00)' \
 		--header 'Connection: keep-alive' \
 		--header 'roaRand;' \
-		--data '{"userName":"'"$EMAIL"'","value":"'"$PASSW"'","grantType":"password","verifyCode":"","appClientId":"92693FFB-6F2F-4717-96BF-BA033C7D72BC"}' \
+		--data '{"userName":"'"$EMAIL"'","value":"'"$PASSW"'","grantType":"password","verifyCode":"","appClientId":"66E02141-3C1D-4DA3-A458-222B3032E4C4"}' \
 		>/var/tmp/huaweistep1.txt
 
 		RESPONSE=`cat /var/tmp/huaweistep1.txt`
@@ -132,7 +132,7 @@
 				curl --location -k 'https://intl.fusionsolar.huawei.com:32800/rest/neteco/appauthen/v1/smapp/app/token' \
 				--header 'Host: intl.fusionsolar.huawei.com:32800' \
 				--header 'x-timezone-offset: 120' \
-				--header 'client-info: _manufacturer=iPad;_model=iPad;_os_ver=16.1.1;_os=iOS;_app_ver=6.23.205;_package_name=com.huawei.smartpvms;appClientId=92693FFB-6F2F-4717-96BF-BA033C7D72BC' \
+				--header 'client-info: _manufacturer=iPad;_model=iPad;_os_ver=17.3.1;_os=iOS;_app_ver=6.24.563;_package_name=com.huawei.smartpvms;appClientId=66E02141-3C1D-4DA3-A458-222B3032E4C4' \
 				--header 'Accept: */*' \
 				--header 'Accept-Encoding: gzip, deflate, br' \
 				--header 'Cache-Control: no-cache' \
@@ -142,7 +142,7 @@
 				--header 'Connection: keep-alive' \
 				--header 'roaRand;' \
 				--header 'Cookie: locale=nl-nl;Path=/; Secure; HttpOnly' \
-				--data '{"userName":"'"$EMAIL"'","value":"'"$PASSW"'","grantType":"password","verifyCode":"","appClientId":"92693FFB-6F2F-4717-96BF-BA033C7D72BC"}' \
+				--data '{"userName":"'"$EMAIL"'","value":"'"$PASSW"'","grantType":"password","verifyCode":"","appClientId":"66E02141-3C1D-4DA3-A458-222B3032E4C4"}' \
 				>/var/tmp/huaweistep1.txt
 
 				#PARSE ROARAND 1ST REQUEST
@@ -156,7 +156,7 @@
 		fi
 			echo "$(date '+%d/%m/%Y %H:%M:%S') try first server"
 			# 2ND REQUEST
-			curl --location -k --compressed --request POST 'https://region01eu5.fusionsolar.huawei.com:32800/rest/pvms/web/station/v1/station/station-list' \
+			curl --location -k --compressed --request POST 'https://uni004eu5.fusionsolar.huawei.com:32800/rest/pvms/web/station/v1/station/station-list' \
 			--header 'Host: region01eu5.fusionsolar.huawei.com:32800' \
 			--header 'Content-Type: application/json' \
 			--header 'x-timezone-offset: 120' \
@@ -164,24 +164,24 @@
 			--header 'Accept-Encoding: gzip, deflate, br' \
 			--header 'Accept-Language: nl-NL;q=1' \
 			--header 'Cache-Control: no-cache' \
-			--header 'client-info: _manufacturer=iPad;_model=iPad7,5;_os_ver=16.1.1;_os=iOS;_app_ver=6.23.205;_package_name=com.huawei.smartpvms;appClientId=92693FFB-6F2F-4717-96BF-BA033C7D72BC' \
+			--header 'client-info: _manufacturer=iPad;_model=iPad;_os_ver=17.3.1;_os=iOS;_app_ver=6.24.563;_package_name=com.huawei.smartpvms;appClientId=66E02141-3C1D-4DA3-A458-222B3032E4C4' \
 			--header 'User-Agent: iCleanPower/6.23.205 (iPad; iOS 16.1.1; Scale/2.00)' \
 			--header 'Referer: https://region01eu5.fusionsolar.huawei.com' \
 			--header 'Connection: keep-alive' \
 			--header "roaRand: $ROARAND" \
-			--header "Cookie: locale=nl-nl;bspsession=$TOKEN;Path=/; Secure; HttpOnly" \
+			--header "Cookie: locale=nl-nl;bspsession=$TOKEN;dp-session=$TOKEN;Path=/; Secure; HttpOnly" \
 			--data '{"locale":"nl_NL","sortId":"createTime","sortDir":"DESC","curPage":1,"pageSize":100}' \
 			>/var/tmp/huaweistep2.txt
 				
 			#PARSE DATA REQUEST
-			DATATXT=`grep -o '"data"[^"]*' /var/tmp/huaweistep2.txt | grep -o '[^"]*$'`
+			DATATXT=`grep -o '"total":[^}]*' /var/tmp/huaweistep2.txt | grep -o '[^"]*$'`
 			echo "$(date '+%d/%m/%Y %H:%M:%S') DATATXT found in 1st request: $DATATXT"
 
-		if [ "$DATATXT" == "" ]
+		if [ "$DATATXT" == ":0" ]
 		then
 			echo "$(date '+%d/%m/%Y %H:%M:%S') try different server"
 			# 2ND REQUEST
-			curl --location -k --compressed --request POST 'https://region04eu5.fusionsolar.huawei.com:32800/rest/pvms/web/station/v1/station/station-list' \
+			curl --location -k --compressed --request POST 'https://uni004eu5.fusionsolar.huawei.com:32800/rest/pvms/web/station/v1/station/station-list' \
 			--header 'Host: region04eu5.fusionsolar.huawei.com:32800' \
 			--header 'Content-Type: application/json' \
 			--header 'x-timezone-offset: 120' \
@@ -189,12 +189,12 @@
 			--header 'Accept-Encoding: gzip, deflate, br' \
 			--header 'Accept-Language: nl-NL;q=1' \
 			--header 'Cache-Control: no-cache' \
-			--header 'client-info: _manufacturer=iPad;_model=iPad7,5;_os_ver=16.1.1;_os=iOS;_app_ver=6.23.205;_package_name=com.huawei.smartpvms;appClientId=92693FFB-6F2F-4717-96BF-BA033C7D72BC' \
+			--header 'client-info: _manufacturer=iPad;_model=iPad;_os_ver=17.3.1;_os=iOS;_app_ver=6.24.563;_package_name=com.huawei.smartpvms;appClientId=66E02141-3C1D-4DA3-A458-222B3032E4C4' \
 			--header 'User-Agent: iCleanPower/6.23.205 (iPad; iOS 16.1.1; Scale/2.00)' \
 			--header 'Referer: https://region04eu5.fusionsolar.huawei.com' \
 			--header 'Connection: keep-alive' \
 			--header "roaRand: $ROARAND" \
-			--header "Cookie: locale=nl-nl;bspsession=$TOKEN;Path=/; Secure; HttpOnly" \
+			--header "Cookie: locale=nl-nl;bspsession=$TOKEN;dp-session=$TOKEN;Path=/; Secure; HttpOnly" \
 			--data '{"locale":"nl_NL","sortId":"createTime","sortDir":"DESC","curPage":1,"pageSize":100}' \
 			>/var/tmp/huaweistep2.txt
 
@@ -203,8 +203,8 @@
 		RESPONSE2=`cat /var/tmp/huaweistep2.txt`
 		echo "$(date '+%d/%m/%Y %H:%M:%S') RESPONSE2 found : $RESPONSE2"
 
-		rm /var/tmp/huawei_passw.txt
-		rm /var/tmp/huaweistep1.txt
+		#rm /var/tmp/huawei_passw.txt
+		#rm /var/tmp/huaweistep1.txt
 	fi
 
 	if [ -s /var/tmp/solis.txt ]

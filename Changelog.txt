@@ -1,3 +1,5 @@
+1.4.11	adapted for Huawei
+
 1.4.10 	cached token for Hoymiles
 
 1.4.9 	external tsc script option added for SolisCloud
