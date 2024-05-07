@@ -177,7 +177,7 @@
 			DATATXT=`grep -o '"total":[^}]*' /var/tmp/huaweistep2.txt | grep -o '[^"]*$'`
 			echo "$(date '+%d/%m/%Y %H:%M:%S') DATATXT found in 1st request: $DATATXT"
 
-		if [ "$DATATXT" == ":0" -o "$DATATXT" == "" ]
+		if [ "$DATATXT" == ":0" ]
 		then
 			echo "$(date '+%d/%m/%Y %H:%M:%S') try different server"
 			# 2ND REQUEST
@@ -203,8 +203,22 @@
 		RESPONSE2=`cat /var/tmp/huaweistep2.txt`
 		echo "$(date '+%d/%m/%Y %H:%M:%S') RESPONSE2 found : $RESPONSE2"
 
-		rm /var/tmp/huawei_passw.txt
-		rm /var/tmp/huaweistep1.txt
+		#rm /var/tmp/huawei_passw.txt
+		#rm /var/tmp/huaweistep1.txt
+	fi
+	
+	if [ -s /var/tmp/hmac.txt ]
+	then
+		KEY=`cat /var/tmp/hmac.txt | cut -d ";" -f 1`
+		DATEVALUE=`cat /var/tmp/hmac.txt | cut -d ";" -f 2`
+		
+		echo "$(date '+%d/%m/%Y %H:%M:%S') Getting hmac for value: $VALUE"
+		echo "$(date '+%d/%m/%Y %H:%M:%S') Getting hmac for key: $KEY"
+		
+		echo  -en "POST\nkxdxk7rbAsrzSIWgEwhH4w==\napplication/json\n$DATEVALUE\n/v1/api/userStationList" | openssl dgst -sha1 -hmac "$KEY" -binary | xxd -p\
+		>/var/tmp/hmac_output.txt
+
+		rm /var/tmp/hmac.txt
 	fi
 
 	if [ -s /var/tmp/solis.txt ]
@@ -212,6 +226,7 @@
 		DATESTR=`cat /var/tmp/solis.txt | cut -d ";" -f 1`
 		AUTH=`cat /var/tmp/solis.txt | cut -d ";" -f 2`
 		PORT=`cat /var/tmp/solis.txt | cut -d ";" -f 3`
+		
 
 		echo "$(date '+%d/%m/%Y %H:%M:%S') Getting data for: $DATESTR"
 		echo "$(date '+%d/%m/%Y %H:%M:%S') Getting data for: $AUTH"
